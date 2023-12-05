@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta property="og:title" content="{{ _('Is it hot in Bochum?') }}" />
+    <meta
+      property="og:description"
+      content="{{ plot_data.yes_no }}, {{ plot_data.avg_compare }}"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <style>
+      .text-justify {
+        text-align: justify;
+      }
+      .footer-link {
+        margin-inline: 20px;
+        white-space: nowrap;
+      }
+      @media (max-width: 1200px) {
+        .footer-link {
+          margin-inline: 10px;
+          font-size: small;
+          white-space: nowrap;
+        }
+      }
+      .bottom {
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+        text-align: center;
+      }
+    </style>
+    <script
+      src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.27.1/plotly.min.js"
+      integrity="sha384-OgV3vzYz7X3Ior6wAbUx8azz2BfRgFlf1CjX/aH16TlmkcU17x9xU4FmMIT002QP"
+      crossorigin="anonymous"
+    >
+    </script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+      integrity="sha384-4LISF5TTJX/fLmGSxO53rV4miRxdg84mZsxmO8Rx5jGtp/LbrixFETvWa5a6sESd"
+      crossorigin="anonymous"
+    />
+    <title>{{ _('Is it hot?') }}</title>
+  </head>
+  <body>
+    <div class="container-fluid text-center" style="height: 100vh">
+      <div class="display-5 fw-bold mt-4">
+        {{ _('Is it hot right now in Bochum at') }}
+        <select
+          id="station_select"
+          class="display-5 ms-1 me-0 text-primary fw-bold"
+          style="max-width: 160px; background: none; border: none"
+        >
+          {% if station == 'LMSS' %}
+            <option class="h1" value="/isithot/lmss" selected="selected">LMSS</option>
+            <!-- <option class="h1" value="/isithot/rgs">RGS II</option> -->
+          {% else %}
+            <option class="h1" value="/isithot/lmss">LMSS</option>
+            <!-- <option class="h1" value="/isithot/rgs" selected="selected">RGS II</option> -->
+          {% endif %}
+        </select>
+        ?
+      </div>
+      <div>
+        <h1 class="my-5 display-2 fw-bold text-center">
+          {{ plot_data.yes_no }}
+        </h1>
+      </div>
+      <h1 class="my-5">{{ plot_data.avg_compare }}</h1>
+      {% if plot_data.current_avg == plot_data.current_avg %}
+        <a class="mt-5" href="#plots">
+      {% else %}
+        <a class="mt-5" href="#year">
+      {% endif %}
+      <i class="bi bi-arrow-down-circle-fill display-3"></i>
+    </a>
+    <h2 class="mt-2">{{ _('Dig deeper') }}</h2>
+    <div class="bottom">
+      <p class="mb-3">
+        {{ _('This Idea originally comes from Sydney. Please have a look at') }}
+        <a href="https://isithotrightnow.com/">https://isithotrightnow.com/</a>
+        {{ _('built by' )}}
+        <a href="https://theurbanist.com.au/about">Mat Lipson</a>,
+        <a href="https://steefancontractor.github.io/my_website/"
+        >Steefan Contractor</a
+          >{{ _(', and') }}
+          <a href="https://rensa.co/">James Goldie</a>
+        </p>
+      </div>
+    </div>
+    {% if plot_data.current_avg == plot_data.current_avg %}
+      <div id="plots" class="container-fluid bg-light py-2">
+        <div class="container">
+          <div class="row my-3">
+            <h1 class="mb-5">{{ _("Here's how today compares...") }}</h1>
+            <div class="col-md-4">
+              <p class="text-justify">
+                {{
+                _(
+                "Today's maximum temperature so far is %(today_max)s °C, and the "
+                "minimum overnight was %(today_min)s °C. The average of the two "
+                "is %(cur_avg).1f °C , which is hotter than %(cur_perc).0f&#37; of "
+                "daily average temperatures at %(station)s for this time of "
+                "year over the period %(period_start)s - %(period_end)s. The "
+                "really hot and cold days (top and bottom 5&#37;, respectively) "
+                "are outside the dotted lines.",
+                today_max=plot_data.now['temp_max'].max(),
+                today_min=plot_data.now['temp_min'].min(),
+                cur_avg=plot_data.current_avg,
+                cur_perc=plot_data.current_avg_percentile,
+                period_start=plot_data.daily.index.min().year,
+                period_end=plot_data.daily.index.max().year,
+                station=station
+                )
+                }}
+              </p>
+            </div>
+            <div class="col-md-8">
+              <h5 class="text-center">
+                {{
+                _(
+                "%(station)s daily average temperature for the two weeks around "
+                "%(current_date)s",
+                station=station,
+                current_date=plot_data.current_date
+                )
+                }}
+              </h5>
+              <div id="distrib_graph"></div>
+            </div>
+          </div>
+          <div class="row my-3">
+            <div class="col-md-4 mb-3 text-justify">
+              {{
+              _(
+              "This is the distribution of temperatures typical for this time of "
+              "year, which we've defined as a seven day window either side of "
+              "today. Just like a bell curve, the plot is higher at more common "
+              "temperatures and lower at rare temperatures."
+              )
+              }}
+            </div>
+            <div class="col-md-8">
+              <h5 class="text-center">
+                {{
+                _(
+                "Distribution of daily average temperature for this time of year since %(year)s",
+                year=plot_data.daily.index.min().year
+                )
+                }}
+              </h5>
+              <div id="hist_graph"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    <div
+      id="calendar_plots"
+      class="container-fluid bg-secondary-subtle py-2 px-0"
+    >
+      <div class="container">
+        <div class="row">
+          <div class="col px-0">
+            <h1 id="year" class="text-center">{{ _("...and the rest of the year") }}</h1>
+            <p class="text-center">
+              {{
+              _(
+              "We've compared every day this year at %(station)s to similar "
+              "times of year in the past. Red days were hot compared to records; "
+              "blue days were cold.",
+              station=station
+              )
+              }}
+            </p>
+            <h5 class="text-center">
+              {{ _("%(station)s percentiles for %(year)s", station=station, year=plot_data.current_date.year) }}
+            </h5>
+            <div id="calender_graph"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid">
+      <div class="row px-3 my-3">
+        <div class="col text-center py-1">
+          <a class="footer-link" href="https://climate.rub.de"
+          >Bochum Urban Climate Lab</a
+            >&copy;2023
+          </div>
+        </div>
+      </div>
+      <script>
+        const config = {
+          responsive: true,
+          displaylogo: false,
+          modeBarButtonsToRemove: [
+            "select2d",
+            "zoom",
+            "pan",
+            "lasso2d",
+            "zoomIn",
+            "zoomOut",
+            "autoScale",
+          ],
+        };
+        let distrib_graph_data = {{ distrib_graph | safe }};
+        distrib_graph_data.config = config;
+
+        let hist_graph_data = {{ hist_graph | safe }};
+        hist_graph_data.config = config;
+
+        let calender_graph_data = {{ calender_graph | safe }};
+        calender_graph_data.config = config;
+
+        let distrib_target = document.getElementById('distrib_graph');
+        let hist_target = document.getElementById('hist_graph');
+        if (distrib_target !== null && hist_target !== null) {
+          Plotly.newPlot("distrib_graph", distrib_graph_data);
+          Plotly.newPlot("hist_graph", hist_graph_data);
+        }
+        Plotly.newPlot("calender_graph", calender_graph_data);
+
+        function redirectURL(x) {
+          let selection_idx = x.target.options.selectedIndex;
+          let link = x.target.options[selection_idx].value;
+          location.href = link;
+        }
+
+        document.getElementById('station_select').addEventListener('change', redirectURL);
+      </script>
+    </body>
+  </html>

@@ -1,0 +1,7 @@
+FROM web
+
+COPY ./web/isithot/requirements.txt isithot-requirements.txt
+
+RUN venv/bin/pip install -r isithot-requirements.txt
+
+RUN venv/bin/pybabel compile -d web/isithot/translations
