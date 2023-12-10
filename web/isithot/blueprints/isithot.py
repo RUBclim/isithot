@@ -10,7 +10,6 @@ from flask import request
 from flask import Response
 from flask import url_for
 from scipy import stats
-from sklearn.linear_model import LinearRegression
 
 from web.dashboard.models import db
 from web.isithot.blueprints.plots import calendar_fig
@@ -55,22 +54,27 @@ def _prepare_data(d: date, station: str) -> PlotData:
     """
     if station == 'LMSS':
         daily_query = '''\
-            SELECT date::TIMESTAMP, temp_mean_mannheim
+            SELECT
+                date::TIMESTAMP,
+                temp_mean_mannheim,
+                EXTRACT(DOY FROM date) AS doy
             FROM lmss_daily ORDER BY date
         '''
     else:  # pragma: no cover
         daily_query = '''\
-            SELECT date::TIMESTAMP, temp_mean_mannheim
+            SELECT
+                date::TIMESTAMP,
+                temp_mean_mannheim,
+                EXTRACT(DOY FROM date) AS doy
             FROM rgs_daily ORDER BY date
         '''
 
     daily = pd.read_sql(sql=daily_query, con=db.engine, index_col='date')
-    daily['doy'] = daily.index.dayofyear
 
     if station == 'LMSS':
         now_query = '''\
             SELECT
-                date, temp_mean, temp_max, temp_min
+                date, temp_max, temp_min
             FROM lmss_garden_raw
             WHERE date > %(date)s
             ORDER BY date
@@ -78,7 +82,7 @@ def _prepare_data(d: date, station: str) -> PlotData:
     else:  # pragma: no cover
         now_query = '''\
             SELECT
-                date, temp_mean, temp_max, temp_min
+                date, temp_max, temp_min
             FROM rgs_raw
             WHERE date > %(date)s
             ORDER BY date
@@ -94,47 +98,41 @@ def _prepare_data(d: date, station: str) -> PlotData:
     # warming trend for current time span of the year
     trend_overall_data = daily['temp_mean_mannheim'].resample(
         '1Y',
-    ).mean().reset_index().dropna()
-    reg = LinearRegression().fit(
-        trend_overall_data.index.values.reshape(len(trend_overall_data), 1),
-        trend_overall_data['temp_mean_mannheim'].values.reshape(
-            len(trend_overall_data), 1,
-        ),
+    ).mean().reset_index(drop='date').dropna()
+    trend_overall = stats.linregress(
+        x=trend_overall_data.index.values,
+        y=trend_overall_data.values,
     )
-    trend_overall_intercept, = reg.intercept_
-    trend_overall_slope, = reg.coef_[0]
 
     # extract data for distribution plots
-    start = (d - timedelta(days=7))
-    end = (d + timedelta(days=7))
-    allowed_doy = pd.date_range(start=start, end=end, periods=14).day_of_year
+    allowed_doy = pd.date_range(
+        start=d - timedelta(days=7),
+        end=(d + timedelta(days=7)),
+        periods=15,
+    ).day_of_year
 
-    data = daily.loc[:f'{d.year}']  # type: ignore[misc]
-    data = data[data['doy'].isin(allowed_doy)]
+    data: pd.DataFrame = daily.loc[
+        (daily.index.year < d.year) & daily['doy'].isin(allowed_doy)
+    ]
 
     # warming trend for current time span of the year
     trend_month_data = data['temp_mean_mannheim'].resample(
         '1Y',
-    ).mean().reset_index().dropna()
-    reg = LinearRegression().fit(
-        trend_month_data.index.values.reshape(len(trend_month_data), 1),
-        trend_month_data['temp_mean_mannheim'].values.reshape(
-            len(trend_month_data), 1,
-        ),
+    ).mean().reset_index(drop='date').dropna()
+    trend_month = stats.linregress(
+        x=trend_month_data.index.values,
+        y=trend_month_data.values,
     )
-    trend_month_intercept, = reg.intercept_
-    trend_month_slope, = reg.coef_[0]
-
     # compile the current data
-    today_data = now.loc[d:].agg(  # type: ignore[misc]
-        {'temp_mean': 'mean', 'temp_min': 'min', 'temp_max': 'max'},
+    today_data = now.loc[now.index >= pd.Timestamp(d)].agg(
+        {'temp_min': 'min', 'temp_max': 'max'},
     )
-
-    # TODO: what if it's the next day and not data is there (yet)
+    # TODO: what if it's the next day and no data is there (yet)
     current_avg = (today_data.temp_max + today_data.temp_min) / 2
 
     current_avg_perc = stats.percentileofscore(
-        data['temp_mean_mannheim'], current_avg,
+        a=data['temp_mean_mannheim'],
+        score=current_avg,
     )
 
     q5 = data['temp_mean_mannheim'].quantile(q=0.05)
@@ -142,25 +140,21 @@ def _prepare_data(d: date, station: str) -> PlotData:
     med = data['temp_mean_mannheim'].median()
 
     # prepare data for calendar plot
-    def _calc_perc(x: pd.Series) -> pd.Series:
-        start = (x.name - timedelta(days=7))
-        end = (x.name + timedelta(days=7))
-        allowed_doy = pd.date_range(
-            start=start, end=end, periods=14,
-        ).day_of_year
+    _daily = daily.loc[daily.index.year < d.year].dropna()
 
-        data = daily[
-            daily['doy'].isin(allowed_doy) &
-            (daily.index.year < d.year)
-        ]
+    def _calc_perc(x: pd.Series) -> pd.Series:
+        allowed_doy = pd.date_range(
+            start=x.name - timedelta(days=7),
+            end=x.name + timedelta(days=7),
+            periods=15,
+        ).day_of_year
         perc, = stats.percentileofscore(
-            data['temp_mean_mannheim'],
+            _daily[_daily['doy'].isin(allowed_doy)]['temp_mean_mannheim'],
             x,
-            nan_policy='omit',
         )
         return perc
 
-    calendar_data = daily.loc[f'{d.year}':]  # type: ignore[misc]
+    calendar_data: pd.DataFrame = daily.loc[daily.index.year >= d.year]
     # add the current day to the calendar plot
     calendar_data.loc[pd.Timestamp(d)] = [
         current_avg, d.timetuple().tm_yday,
@@ -183,8 +177,7 @@ def _prepare_data(d: date, station: str) -> PlotData:
         index=['month', 'month_name'],
         columns='day',
         values='perc',
-    )
-    calendar_data = calendar_data.reset_index('month').drop(['month'], axis=1)
+    ).droplevel('month')
 
     return PlotData(
         current_date=d,
@@ -194,10 +187,10 @@ def _prepare_data(d: date, station: str) -> PlotData:
         trend_overall_data=trend_overall_data,
         trend_month_data=trend_month_data,
         calendar_data=calendar_data,
-        trend_overall_slope=trend_overall_slope,
-        trend_overall_intercept=trend_overall_intercept,
-        trend_month_slope=trend_month_slope,
-        trend_month_intercept=trend_month_intercept,
+        trend_overall_slope=trend_overall.slope,
+        trend_overall_intercept=trend_overall.intercept,
+        trend_month_slope=trend_month.slope,
+        trend_month_intercept=trend_month.intercept,
         current_avg=current_avg,
         current_avg_percentile=current_avg_perc,
         q5=q5,

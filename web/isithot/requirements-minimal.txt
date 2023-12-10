@@ -5,7 +5,6 @@ flask_babel
 gunicorn
 plotly
 psycopg2-binary
-scikit-learn
 scipy
 sentry-sdk[flask, sqlalchemy]
 sqlalchemy

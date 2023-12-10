@@ -1,4 +1,5 @@
 import io
+import os
 from datetime import date
 
 import numpy as np
@@ -6,6 +7,7 @@ import pandas as pd
 import pytest
 from freezegun import freeze_time
 from PIL import Image
+from PIL import ImageChops
 from plotly.graph_objects import Figure
 from sqlalchemy import text
 
@@ -79,24 +81,49 @@ def test_plot_data_avg_compare(perc_val, txt, plot_data):
 def assert_plot_is_equal(
         fig: Figure,
         baseline: str,
-        # TODO: there is some weirdness going on between running this locally
-        # vs in CI. Investigate this!
-        diff_th: float = 10,
+        diff_th: float = 0.0,
 ) -> None:
-    with io.BytesIO() as current_img:
-        fig.write_image(file=current_img, format='png')
+    with io.BytesIO() as current_img_bytes:
+        # make the background white so we can actually see something!
+        fig.update_layout(
+            plot_bgcolor='rgba(255, 255, 255, 255)',
+            paper_bgcolor='rgba(255, 255, 255, 255)',
+            font_family='DejaVu Sans',
+        )
+        fig.write_image(file=current_img_bytes, format='jpeg', scale=1)
 
         with (
                 Image.open(baseline) as baseline_img,
-                Image.open(current_img) as current_img,
+                Image.open(current_img_bytes) as current_img,
         ):
             baseline_array = np.array(baseline_img)
             current_array = np.array(current_img)
 
-    diff_sum = np.abs(baseline_array - current_array).sum()
+    diff = baseline_array - current_array
+    diff_sum = np.abs(diff).sum()
     diff_sum_normed = diff_sum / baseline_array.size
     if diff_sum_normed > diff_th:
-        raise AssertionError(f'{diff_sum_normed} > {diff_th}: images differ')
+        diff = ImageChops.difference(baseline_img, current_img)
+        diff_binary = np.array(diff)
+        diff_binary[diff_binary > 0] = 255
+        yellow = Image.new('RGB', diff.size, ('yellow'))
+        yellow_diff = ImageChops.multiply(yellow, Image.fromarray(diff_binary))
+        result = ImageChops.blend(yellow_diff, current_img, 0.2)
+
+        # save to a folder to have a look at the diff
+        os.makedirs('.pytest-img-comp', exist_ok=True)
+        name, _ = os.path.splitext(os.path.basename(baseline))
+        baseline_img.save(
+            os.path.join('.pytest-img-comp', f'{name}_baseline.jpeg'),
+        )
+        current_img.save(
+            os.path.join('.pytest-img-comp', f'{name}_current_img.jpeg'),
+        )
+        diff_path = os.path.join('.pytest-img-comp', f'{name}_diff_img.jpeg')
+        result.save(diff_path)
+        raise AssertionError(
+            f'{diff_sum_normed} > {diff_th}: images differ (see: {diff_path})',
+        )
 
 
 @pytest.fixture
@@ -113,7 +140,9 @@ def test_distrib_plot_lmss(isithot_client):
     with isithot_client.application.app_context():
         plot_data = _prepare_data(d=date(2021, 5, 14), station='LMSS')
     fig = distrib_fig(plot_data)
-    assert_plot_is_equal(fig, baseline='testing/plot_baseline/distrib_fig.png')
+    assert_plot_is_equal(
+        fig, baseline='testing/plot_baseline/distrib_fig.jpeg',
+    )
 
 
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
@@ -121,7 +150,7 @@ def test_hist_plot_lmss(isithot_client):
     with isithot_client.application.app_context():
         plot_data = _prepare_data(d=date(2021, 5, 14), station='LMSS')
     fig = hist_fig(plot_data)
-    assert_plot_is_equal(fig, baseline='testing/plot_baseline/hist_fig.png')
+    assert_plot_is_equal(fig, baseline='testing/plot_baseline/hist_fig.jpeg')
 
 
 @pytest.mark.usefixtures('test_data_lmss', 'clean_tables')
@@ -138,7 +167,7 @@ def test_hist_plot_lmss_today_value_is_record(isithot_client, engine):
     fig = hist_fig(plot_data)
     assert_plot_is_equal(
         fig,
-        baseline='testing/plot_baseline/hist_fig_max_record.png',
+        baseline='testing/plot_baseline/hist_fig_max_record.jpeg',
     )
 
 
@@ -149,7 +178,7 @@ def test_hist_plot_lmss_no_current_data(isithot_client):
     fig = hist_fig(plot_data)
     assert_plot_is_equal(
         fig,
-        baseline='testing/plot_baseline/hist_fig_no_current_data.png',
+        baseline='testing/plot_baseline/hist_fig_no_current_data.jpeg',
     )
 
 
@@ -159,7 +188,7 @@ def test_calendar_plot_lmss(isithot_client):
         plot_data = _prepare_data(d=date(2021, 5, 14), station='LMSS')
     fig = calendar_fig(plot_data)
     assert_plot_is_equal(
-        fig, baseline='testing/plot_baseline/calendar_fig.png',
+        fig, baseline='testing/plot_baseline/calendar_fig.jpeg',
     )
 
 
