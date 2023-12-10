@@ -36,7 +36,7 @@ msgstr "Nicht wirklich"
 
 #: web/isithot/blueprints/plots.py:74
 msgid "Yup"
-msgstr "jo"
+msgstr "Jo"
 
 #: web/isithot/blueprints/plots.py:76
 msgid "Yeah!"
@@ -68,11 +68,11 @@ msgstr "Es ist tatsächlich recht kühl"
 
 #: web/isithot/blueprints/plots.py:94
 msgid "It's about average"
-msgstr "Es ist mehr oder weniger im Durchschnitt"
+msgstr "Es liegt mehr oder weniger im Durchschnitt"
 
 #: web/isithot/blueprints/plots.py:96
 msgid "It's warmer than average"
-msgstr "Es ist wärmer als normalerweise"
+msgstr "Es ist wärmer als normal"
 
 #: web/isithot/blueprints/plots.py:98
 msgid "It's quite hot!"
@@ -156,7 +156,7 @@ msgstr "Mehr Details"
 
 #: web/isithot/templates/index.html:88
 msgid "This Idea originally comes from Sydney. Please have a look at"
-msgstr "Die Idee stammt urprünglich aus Sydney. Bitte betrachten Sie"
+msgstr "Die Idee stammt ursprünglich aus Sydney. Bitte betrachten Sie"
 
 #: web/isithot/templates/index.html:90
 msgid "built by"
@@ -183,8 +183,8 @@ msgstr ""
 "Die heutige Maximaltemperatur bis jetzt ist %(today_max)s °C und die "
 "Minimumtemperatur ist %(today_min)s °C. Der Durchschnitt beider ist "
 "%(cur_avg).1f °C, was wärmer als %(cur_perc).0f&#37; der täglichen "
-"Durchschnittstemperaturen an der %(station)s in dieser Jahreszeit und im "
-"Zeitraum von %(period_start)s - %(period_end)s. Die sehr heißen und "
+"mittleren Temperaturen an der %(station)s in dieser Jahreszeit und im "
+"Zeitraum von %(period_start)s - %(period_end)s ist. Die sehr heißen und "
 "kalten Tage (die jeweiligen oberen und unteren 5&#37;) liegen außerhalb "
 "der gestrichelten Linien."
 
@@ -206,8 +206,9 @@ msgid ""
 msgstr ""
 "Dies ist die Verteilung der Temperaturen, die typisch für diese "
 "Jahreszeit sind. Diese wurden als ein Fenster von sieben Tagen um das "
-"Datum definiert. Der Plot zeit höhere Werte bei häufig vorkommenden "
-"Temperaturen und niedrige Werte bei selten vorkommenden Termperaturen."
+"heutige Datum definiert. Der Plot zeigt höhere Werte bei häufig "
+"vorkommenden Temperaturen und niedrige Werte bei selten vorkommenden "
+"Temperaturen."
 
 #: web/isithot/templates/index.html:154
 #, python-format
@@ -227,9 +228,9 @@ msgid ""
 "year in the past. Red days were hot compared to records; blue days were "
 "cold."
 msgstr ""
-"Jeder Tag dieses Jahr an der %(station)s wurde zu ähnlichen Zeiträumen im"
-" Jahr in der Vergangenheit verglichen. Rot markierte Tage waren im "
-"Vergleich wärmer, blaue Tage kälter."
+"Jeder Tag in diesem Jahres, an der %(station)s, wurde mit ähnlichen "
+"Zeiträumen in den vergangenen Jahren verglichen. Rot markierte Tage waren"
+" im Vergleich wärmer, blaue Tage kälter."
 
 #: web/isithot/templates/index.html:185
 #, python-format

@@ -259,8 +259,8 @@ def test_isithot_lmss_german_locale(isithot_client):
     assert 'die Minimumtemperatur ist 0.6 °C' in data
     assert 'Der Durchschnitt beider ist 5.9 °C' in data
     assert (
-        'was wärmer als 0&#37; der täglichen Durchschnittstemperaturen '
-        'an der LMSS'
+        'was wärmer als 0&#37; der täglichen mittleren Temperaturen an der '
+        'LMSS'
     ) in data
     assert 'und im Zeitraum von 1912 - 2021' in data
 
