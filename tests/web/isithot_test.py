@@ -102,7 +102,8 @@ def assert_plot_is_equal(
     diff = baseline_array - current_array
     diff_sum = np.abs(diff).sum()
     diff_sum_normed = diff_sum / baseline_array.size
-    if diff_sum_normed > diff_th:
+    # this is only executed when a test fails
+    if diff_sum_normed > diff_th:  # pragma: no cover
         diff = ImageChops.difference(baseline_img, current_img)
         diff_binary = np.array(diff)
         diff_binary[diff_binary > 0] = 255
