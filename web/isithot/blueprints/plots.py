@@ -95,13 +95,20 @@ class PlotData(NamedTuple):
         elif 50 <= self.current_avg_percentile < 60:
             return _("It's warmer than average")
         elif 60 <= self.current_avg_percentile < 90:
-            return _("It's quite hot!")
+            return _("It's quite %(hot_warm)s!", hot_warm=self.hot_warm)
         elif 90 <= self.current_avg_percentile < 95:
-            return _("It's really hot!")
+            return _("It's really %(hot_warm)s!", hot_warm=self.hot_warm)
         elif 95 <= self.current_avg_percentile <= 100:
-            return _("It's bloody hot!")
+            return _("It's bloody %(hot_warm)s!", hot_warm=self.hot_warm)
         else:
-            return _('could be hotter, could be warmer')
+            return _('could be hotter, could be cooler')
+
+    @property
+    def hot_warm(self) -> str:
+        if self.current_avg > 15:
+            return _('hot')
+        else:
+            return _('warm')
 
 
 def distrib_fig(fig_data: PlotData) -> Figure:

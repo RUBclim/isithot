@@ -67,15 +67,55 @@ def test_plot_data_yes_no(perc_val, txt, plot_data):
         (15, "It's actually kinda cool"),
         (45, "It's about average"),
         (55, "It's warmer than average"),
+        (70, "It's quite warm!"),
+        (91, "It's really warm!"),
+        (96, "It's bloody warm!"),
+        (np.nan, 'could be hotter, could be cooler'),
+    ),
+)
+def test_plot_data_avg_compare_warm(perc_val, txt, plot_data):
+    plot_data = plot_data._replace(
+        current_avg_percentile=perc_val,
+        current_avg=10,
+    )
+    assert plot_data.avg_compare == txt
+
+
+@pytest.mark.parametrize(
+    ('perc_val', 'txt'),
+    (
+        (1, "Are you kidding?! It's bloody cold"),
+        (7, "It's actually really cold"),
+        (15, "It's actually kinda cool"),
+        (45, "It's about average"),
+        (55, "It's warmer than average"),
         (70, "It's quite hot!"),
         (91, "It's really hot!"),
         (96, "It's bloody hot!"),
-        (np.nan, 'could be hotter, could be warmer'),
+        (np.nan, 'could be hotter, could be cooler'),
     ),
 )
-def test_plot_data_avg_compare(perc_val, txt, plot_data):
-    plot_data = plot_data._replace(current_avg_percentile=perc_val)
+def test_plot_data_avg_compare_hot(perc_val, txt, plot_data):
+    plot_data = plot_data._replace(
+        current_avg_percentile=perc_val,
+        current_avg=16,
+    )
     assert plot_data.avg_compare == txt
+
+
+@pytest.mark.parametrize(
+    ('current_avg', 'txt'),
+    (
+        (-10, 'warm'),
+        (0, 'warm'),
+        (15, 'warm'),
+        (20, 'hot'),
+        (np.nan, 'warm'),
+    ),
+)
+def test_plot_data_hot_warm(current_avg, txt, plot_data):
+    plot_data = plot_data._replace(current_avg=current_avg)
+    assert plot_data.hot_warm == txt
 
 
 def assert_plot_is_equal(
@@ -213,7 +253,7 @@ def test_isithot_no_current_data_plots_are_omitted(isithot_client):
     data = rv.data.decode()
     # check that text is correct
     assert 'not sure, we have no data yet' in data
-    assert 'could be hotter, could be warmer' in data
+    assert 'could be hotter, could be cooler' in data
     assert '...and the rest of the year' in data
     # must not be in there and omitted
     assert "Here's how today compares..." not in data
@@ -235,7 +275,7 @@ def test_isithot_lmss(isithot_client):
     assert 'the minimum overnight was 0.6 °C' in data
     assert 'The average of the two is 5.9 °C' in data
     assert (
-        'which is hotter than 0&#37; '
+        'which is warmer than 0&#37; '
         'of daily average temperatures at LMSS'
     ) in data
     assert 'over the period 1912 - 2021' in data

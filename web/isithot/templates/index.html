@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta property="og:title" content="{{ _('Is it hot in Bochum?') }}" />
+    <meta property="og:title" content="{{ _('Is it %(hot_warm)s in Bochum?', hot_warm=plot_data.hot_warm) }}" />
     <meta
       property="og:description"
       content="{{ plot_data.yes_no }}, {{ plot_data.avg_compare }}"
@@ -48,12 +48,12 @@
       integrity="sha384-DeN988K4Vg0cDrUgVHjrVM0+ogMrXsv0AZYIH40/9VGpjC7zi8TFGdnPwL1EkU/T"
       crossorigin="anonymous"
     />
-    <title>{{ _('Is it hot?') }}</title>
+    <title>{{ _('Is it %(hot_warm)s?', hot_warm=plot_data.hot_warm) }}</title>
   </head>
   <body>
     <div class="container-fluid text-center px-0" style="height: 100vh">
       <div class="display-5 fw-bold mt-4">
-        {{ _('Is it hot right now in Bochum at') }}
+        {{ _('Is it %(hot_warm)s right now in Bochum at', hot_warm=plot_data.hot_warm) }}
         <select
           id="station_select"
           class="display-5 ms-1 me-0 text-primary fw-bold"
@@ -107,7 +107,7 @@
                 _(
                 "Today's maximum temperature so far is %(today_max)s °C, and the "
                 "minimum overnight was %(today_min)s °C. The average of the two "
-                "is %(cur_avg).1f °C , which is hotter than %(cur_perc).0f&#37; of "
+                "is %(cur_avg).1f °C, which is warmer than %(cur_perc).0f&#37; of "
                 "daily average temperatures at %(station)s for this time of "
                 "year over the period %(period_start)s - %(period_end)s. The "
                 "really hot and cold days (top and bottom 5&#37;, respectively) "
@@ -118,7 +118,8 @@
                 cur_perc=plot_data.current_avg_percentile,
                 period_start=plot_data.daily.index.min().year,
                 period_end=plot_data.daily.index.max().year,
-                station=station
+                station=station,
+                hot_warm=plot_data.hot_warm
                 )
                 }}
               </p>
@@ -175,9 +176,10 @@
               {{
               _(
               "We've compared every day this year at %(station)s to similar "
-              "times of year in the past. Red days were hot compared to records; "
+              "times of year in the past. Red days were %(hot_warm)s compared to records; "
               "blue days were cold.",
-              station=station
+              station=station,
+              hot_warm=plot_data.hot_warm
               )
               }}
             </p>
