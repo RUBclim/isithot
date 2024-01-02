@@ -4,6 +4,7 @@ from datetime import date
 
 import numpy as np
 import pandas as pd
+import plotly.io
 import pytest
 from freezegun import freeze_time
 from PIL import Image
@@ -227,7 +228,7 @@ def test_hist_plot_lmss_no_current_data(isithot_client):
 def test_calendar_plot_lmss(isithot_client):
     with isithot_client.application.app_context():
         plot_data = _prepare_data(d=date(2021, 5, 14), station='LMSS')
-    fig = calendar_fig(plot_data)
+    fig = calendar_fig(plot_data.calendar_data)
     assert_plot_is_equal(
         fig, baseline='testing/plot_baseline/calendar_fig.jpeg',
     )
@@ -326,3 +327,27 @@ def test_isithot_lmss_locale_is_not_cached(isithot_client):
     assert rv.status_code == 200
     data_en = rv.data.decode()
     assert 'Hell no!' in data_en
+
+
+@pytest.mark.parametrize('station', ('unknown-station', 'rgs', 'RGS'))
+def test_other_years_station_not_found(isithot_client, station):
+    rv = isithot_client.get(f'/isithot/other-years/{station}/2021')
+    assert rv.status_code == 404
+
+
+@freeze_time('2021-05-14 22:00')
+@pytest.mark.parametrize('year', (2009, 2022))
+def test_other_years_invalid_year(isithot_client, year):
+    rv = isithot_client.get(f'/isithot/other-years/lmss/{year}')
+    assert rv.status_code == 400
+
+
+@freeze_time('2024-01-01 18:19')
+@pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
+def test_other_years(isithot_client):
+    rv = isithot_client.get('/isithot/other-years/lmss/2021')
+    assert rv.status_code == 200
+    fig = plotly.io.from_json(rv.data.decode())
+    assert_plot_is_equal(
+        fig, baseline='testing/plot_baseline/calendar_fig_other_years.jpeg',
+    )

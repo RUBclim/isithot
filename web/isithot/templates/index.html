@@ -191,6 +191,25 @@
         </div>
       </div>
     </div>
+    <div class="container-fluid bg-light py-2 px-0">
+      <div class="container">
+        <div class="row">
+          <div id="other_years_block" class="col px-0 text-center">
+            <h1 id="year" class="text-center">{{ _("What about the last years?") }}</h1>
+          </div>
+          <div id="other_years_block" class="px-0 text-center">
+            <button
+              id="add_button"
+              type="button"
+              class="btn btn-primary w-25 mt-2 mb-3"
+              onclick="addCalendarGraph()"
+            >
+              {{ _("show previous year") }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="container-fluid">
       <div class="row px-3 my-3">
         <div class="col text-center py-1">
@@ -238,6 +257,44 @@
         }
 
         document.getElementById('station_select').addEventListener('change', redirectURL);
+
+        window.year = new Date().getFullYear() - 1;
+
+        async function addCalendarGraph() {
+          let button = document.getElementById("add_button");
+          button.setAttribute("disabled", "");
+          const old_inner = button.innerHTML;
+          button.innerHTML =
+            '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+          const request = `other-years/{{ station }}/${window.year}`;
+          let graph_data = await fetch(request).then((response) => {
+            return response.json();
+          });
+
+          let h5 = document.createElement("h5");
+          h5.className = "text-center mt-3";
+          h5.innerHTML = window.year;
+
+          let div = document.createElement("div");
+          div.className = "mb-4";
+          const div_id = `calender_graph_${window.year}`;
+          div.id = div_id;
+
+          const parent = document.getElementById("other_years_block");
+          parent.appendChild(h5);
+          parent.appendChild(div);
+
+          graph_data.config = config;
+          Plotly.newPlot(div_id, graph_data);
+          window.year--;
+          button.innerHTML = old_inner;
+          button.removeAttribute("disabled");
+          window.scrollTo(0, document.body.scrollHeight);
+          if (window.year < 2010) {
+            button.remove();
+          }
+        }
       </script>
     </body>
   </html>

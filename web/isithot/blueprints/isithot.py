@@ -39,18 +39,24 @@ def get_locale() -> str | None:
         return 'en'
 
 
-def _prepare_data(d: date, station: str) -> PlotData:
+def _prepare_daily_and_calendar_data(
+        station: str,
+        d: date,
+        current_avg: float | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    The purpose of this function is to compile a
-    :func:`web.isithot.blueprints.plots.PlotData()` object which is used for
-    the creation of all plots.
+    This get the daily data from the database and creates the calendar plot
+    data. This is separated from :func:`_prepare_data` so it can be used via
+    :func:`last_years_calendar`
 
-    :param d: the date for which to prepare data. This will usually be today
     :param station: The station to prepare the data for. It can currently only
         be ``LMSS`` and ``RGS``
-
-    :returns: the data needed for creating the plots and texts all contained in
-        a :func:`web.isithot.blueprints.plots.PlotData()` object
+    :param d: the date for which to prepare data. This will usually be today or
+        in this case the first day of the year to prepare the calendar data for
+    :param current_avg: This is used to add the current day which has no entry
+        in the daily data just yet. When working with previous years, this
+        should be left as ``None``
+    :returns: a tuple of :func:`pd.DataFrame`: ``(daily, calendar_data)``
     """
     if station == 'LMSS':
         daily_query = '''\
@@ -70,7 +76,65 @@ def _prepare_data(d: date, station: str) -> PlotData:
         '''
 
     daily = pd.read_sql(sql=daily_query, con=db.engine, index_col='date')
+    _daily = daily.loc[daily.index.year < d.year].dropna()
 
+    def _calc_perc(x: pd.Series) -> pd.Series:
+        allowed_doy = pd.date_range(
+            start=x.name - timedelta(days=7),
+            end=x.name + timedelta(days=7),
+            periods=15,
+        ).day_of_year
+        perc, = stats.percentileofscore(
+            _daily[_daily['doy'].isin(allowed_doy)]['temp_mean_mannheim'],
+            x,
+        )
+        return perc
+
+    calendar_data: pd.DataFrame = daily.loc[
+        (daily.index.year >= d.year) & (daily.index.year < d.year + 1)
+    ]
+
+    if current_avg is not None:
+        # add the current day to the calendar plot
+        calendar_data.loc[pd.Timestamp(d)] = [
+            current_avg, d.timetuple().tm_yday,
+        ]
+
+    calendar_data.loc[:, 'perc'] = calendar_data[[
+        'temp_mean_mannheim',
+    ]].apply(_calc_perc, axis=1)
+    # fill the year, so the plot always shows the entire year
+    days = pd.date_range(
+        start=date(d.year, 1, 1),
+        end=date(d.year, 12, 31), freq='1D',
+        name='date',
+    )
+    calendar_data = calendar_data.reindex(days)
+
+    calendar_data.loc[:, 'day'] = calendar_data.index.day
+    calendar_data.loc[:, 'month'] = calendar_data.index.month
+    calendar_data.loc[:, 'month_name'] = calendar_data.index.strftime('%b')
+    calendar_data = calendar_data.pivot(
+        index=['month', 'month_name'],
+        columns='day',
+        values='perc',
+    ).droplevel('month')
+    return (daily, calendar_data)
+
+
+def _prepare_data(d: date, station: str) -> PlotData:
+    """
+    The purpose of this function is to compile a
+    :func:`web.isithot.blueprints.plots.PlotData()` object which is used for
+    the creation of all plots.
+
+    :param d: the date for which to prepare data. This will usually be today
+    :param station: The station to prepare the data for. It can currently only
+        be ``LMSS`` and ``RGS``
+
+    :returns: the data needed for creating the plots and texts all contained in
+        a :func:`web.isithot.blueprints.plots.PlotData()` object
+    """
     if station == 'LMSS':
         now_query = '''\
             SELECT
@@ -95,6 +159,19 @@ def _prepare_data(d: date, station: str) -> PlotData:
         params={'date': d},
     )
 
+    # compile the current data
+    today_data = now.loc[now.index >= pd.Timestamp(d)].agg(
+        {'temp_min': 'min', 'temp_max': 'max'},
+    )
+
+    # TODO: what if it's the next day and no data is there (yet)
+    current_avg = (today_data.temp_max + today_data.temp_min) / 2
+
+    daily, calendar_data = _prepare_daily_and_calendar_data(
+        station=station,
+        d=d,
+        current_avg=current_avg,
+    )
     # warming trend for current time span of the year
     trend_overall_data = daily['temp_mean_mannheim'].resample(
         '1Y',
@@ -123,12 +200,6 @@ def _prepare_data(d: date, station: str) -> PlotData:
         x=trend_month_data.index.values,
         y=trend_month_data.values,
     )
-    # compile the current data
-    today_data = now.loc[now.index >= pd.Timestamp(d)].agg(
-        {'temp_min': 'min', 'temp_max': 'max'},
-    )
-    # TODO: what if it's the next day and no data is there (yet)
-    current_avg = (today_data.temp_max + today_data.temp_min) / 2
 
     current_avg_perc = stats.percentileofscore(
         a=data['temp_mean_mannheim'],
@@ -138,46 +209,6 @@ def _prepare_data(d: date, station: str) -> PlotData:
     q5 = data['temp_mean_mannheim'].quantile(q=0.05)
     q95 = data['temp_mean_mannheim'].quantile(q=0.95)
     med = data['temp_mean_mannheim'].median()
-
-    # prepare data for calendar plot
-    _daily = daily.loc[daily.index.year < d.year].dropna()
-
-    def _calc_perc(x: pd.Series) -> pd.Series:
-        allowed_doy = pd.date_range(
-            start=x.name - timedelta(days=7),
-            end=x.name + timedelta(days=7),
-            periods=15,
-        ).day_of_year
-        perc, = stats.percentileofscore(
-            _daily[_daily['doy'].isin(allowed_doy)]['temp_mean_mannheim'],
-            x,
-        )
-        return perc
-
-    calendar_data: pd.DataFrame = daily.loc[daily.index.year >= d.year]
-    # add the current day to the calendar plot
-    calendar_data.loc[pd.Timestamp(d)] = [
-        current_avg, d.timetuple().tm_yday,
-    ]
-    calendar_data.loc[:, 'perc'] = calendar_data[[
-        'temp_mean_mannheim',
-    ]].apply(_calc_perc, axis=1)
-    # fill the year, so the plot always shows the entire year
-    days = pd.date_range(
-        start=date(d.year, 1, 1),
-        end=date(d.year, 12, 31), freq='1D',
-        name='date',
-    )
-    calendar_data = calendar_data.reindex(days)
-
-    calendar_data.loc[:, 'day'] = calendar_data.index.day
-    calendar_data.loc[:, 'month'] = calendar_data.index.month
-    calendar_data.loc[:, 'month_name'] = calendar_data.index.strftime('%b')
-    calendar_data = calendar_data.pivot(
-        index=['month', 'month_name'],
-        columns='day',
-        values='perc',
-    ).droplevel('month')
 
     return PlotData(
         current_date=d,
@@ -233,7 +264,7 @@ def plots(station: str) -> str:
     data = _prepare_data(d=date.today(), station=station)
     distrib_graph = distrib_fig(data)
     hist_graph = hist_fig(data)
-    calender_graph = calendar_fig(data)
+    calender_graph = calendar_fig(data.calendar_data)
     return render_template(
         'index.html',
         distrib_graph=distrib_graph.to_json(),
@@ -242,3 +273,33 @@ def plots(station: str) -> str:
         station=station,
         plot_data=data,
     )
+
+
+@isithot.route('/other-years/<station>/<int:year>')
+# we can cache this indefinitely since it's totally static
+@cache.cached()
+def last_years_calendar(station: str, year: int) -> str:
+    """
+    Returns the calendar figure data as ``json`` for the specified year.
+
+    This route is cached indefinitely and does not take the locale into
+    account, since it's only static data.
+
+    :param station: The station a plot is created for. Either ``lmss`` or
+        ``rgs``
+    :param year: The year a plot is created for. Must be greater than 2010 and
+        less than or equal to the current year
+    """
+    station = station.upper()
+    # TODO: this is i.e. a feature flag for the RGS
+    if station not in ('LMSS',):
+        abort(404)
+    if not (2010 <= year <= date.today().year):
+        abort(400)
+
+    _, calendar_data = _prepare_daily_and_calendar_data(
+        station=station,
+        d=date(year, 1, 1),
+    )
+    fig = calendar_fig(calendar_data)
+    return Response(fig.to_json(), mimetype='application/json')

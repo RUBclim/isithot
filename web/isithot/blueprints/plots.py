@@ -449,20 +449,20 @@ def _format_labels(x: float) -> str:
     return f'{x:.0f}' if not np.isnan(x) else ''
 
 
-def calendar_fig(fig_data: PlotData) -> Figure:
+def calendar_fig(calendar_data: pd.DataFrame) -> Figure:
     """
     Creates a figures representing a calendar plot of the current year
     indicating the percentile of each day as a color and a number.
 
-    :param fig_data: a :func:`PlotData` object containing all data necessary
+    :param calendar_data: a :func:`pd.DataFrame` containing all data necessary
         for creating the plot
 
     :returns: a :func:`Figure` object that can be used as a ``json`` on the
         page, defining the plot including all data
     """
-    text = _format_labels(fig_data.calendar_data.values)
+    text = _format_labels(calendar_data.values)
     fig = px.imshow(
-        fig_data.calendar_data,
+        calendar_data,
         color_continuous_scale='RdBu_r',
         aspect='auto',
         zmax=100,

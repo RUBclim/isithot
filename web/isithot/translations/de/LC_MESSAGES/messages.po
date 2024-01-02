@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-01-02 15:45+0100\n"
+"POT-Creation-Date: 2024-01-02 18:05+0100\n"
 "PO-Revision-Date: 2023-12-05 18:26+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: de\n"
@@ -251,3 +251,11 @@ msgstr ""
 #, python-format
 msgid "%(station)s percentiles for %(year)s"
 msgstr "%(station)s Perzentile für %(year)s"
+
+#: web/isithot/templates/index.html:198
+msgid "What about the last years?"
+msgstr "Was ist mit den letzten Jahren?"
+
+#: web/isithot/templates/index.html:207
+msgid "show previous year"
+msgstr "zeige Vorjahr"
