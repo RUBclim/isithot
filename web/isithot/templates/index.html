@@ -232,18 +232,40 @@
             "zoomOut",
             "autoScale",
           ],
+          toImageButtonOptions: {
+            format: "png",
+            scale: 3,
+          },
         };
         let distrib_graph_data = {{ distrib_graph | safe }};
-        distrib_graph_data.config = config;
+        distrib_graph_data.config = { ...config };
+        distrib_graph_data.config.toImageButtonOptions = {
+          ...config.toImageButtonOptions,
+          width: 856,
+          height: 450,
+          filename: "scatter_plot",
+        };
 
         let hist_graph_data = {{ hist_graph | safe }};
-        hist_graph_data.config = config;
+        hist_graph_data.config = { ...config };
+        hist_graph_data.config.toImageButtonOptions = {
+          ...config.toImageButtonOptions,
+          width: 856,
+          height: 450,
+          filename: "historgram_kde_plot",
+        };
 
         let calender_graph_data = {{ calender_graph | safe }};
-        calender_graph_data.config = config;
+        calender_graph_data.config = { ...config };
+        calender_graph_data.config.toImageButtonOptions = {
+          ...config.toImageButtonOptions,
+          width: 1320,
+          height: 450,
+          filename: "calendar_plot",
+        };
 
-        let distrib_target = document.getElementById('distrib_graph');
-        let hist_target = document.getElementById('hist_graph');
+        let distrib_target = document.getElementById("distrib_graph");
+        let hist_target = document.getElementById("hist_graph");
         if (distrib_target !== null && hist_target !== null) {
           Plotly.newPlot("distrib_graph", distrib_graph_data);
           Plotly.newPlot("hist_graph", hist_graph_data);
@@ -256,7 +278,9 @@
           location.href = link;
         }
 
-        document.getElementById('station_select').addEventListener('change', redirectURL);
+        document
+          .getElementById("station_select")
+          .addEventListener("change", redirectURL);
 
         window.year = new Date().getFullYear() - 1;
 
@@ -285,7 +309,13 @@
           parent.appendChild(h5);
           parent.appendChild(div);
 
-          graph_data.config = config;
+          graph_data.config = { ...config };
+          graph_data.config.toImageButtonOptions = {
+            ...config.toImageButtonOptions,
+            width: 1320,
+            height: 450,
+            filename: `calendar_plot_${year}`,
+          };
           Plotly.newPlot(div_id, graph_data);
           window.year--;
           button.innerHTML = old_inner;
