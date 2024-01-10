@@ -265,11 +265,15 @@ def plots(station: str) -> str:
     distrib_graph = distrib_fig(data)
     hist_graph = hist_fig(data)
     calender_graph = calendar_fig(data.calendar_data)
+    # because we have `orjson` installed, plotly tries to use this. But our
+    # tests fail because it cannot serialize freezegun's FakeDateTime we need
+    # to fallback to the builtin json module
+    # https://github.com/spulec/freezegun/issues/448
     return render_template(
         'index.html',
-        distrib_graph=distrib_graph.to_json(),
-        hist_graph=hist_graph.to_json(),
-        calender_graph=calender_graph.to_json(),
+        distrib_graph=distrib_graph.to_json(engine='json'),
+        hist_graph=hist_graph.to_json(engine='json'),
+        calender_graph=calender_graph.to_json(engine='json'),
         station=station,
         plot_data=data,
     )
@@ -302,4 +306,4 @@ def last_years_calendar(station: str, year: int) -> str:
         d=date(year, 1, 1),
     )
     fig = calendar_fig(calendar_data)
-    return Response(fig.to_json(), mimetype='application/json')
+    return Response(fig.to_json(engine='json'), mimetype='application/json')
