@@ -59,13 +59,16 @@
           class="display-5 ms-1 me-0 text-primary fw-bold"
           style="max-width: 160px; background: none; border: none"
         >
-          {% if station == 'LMSS' %}
-            <option class="h1" value="/isithot/lmss" selected="selected">LMSS</option>
-            <!-- <option class="h1" value="/isithot/rgs">RGS II</option> -->
-          {% else %}
-            <option class="h1" value="/isithot/lmss">LMSS</option>
-            <!-- <option class="h1" value="/isithot/rgs" selected="selected">RGS II</option> -->
-          {% endif %}
+          {% for s in data_providers.values() %}
+            <option
+              class="h1"
+              value="/isithot/{{ s.id }}"
+              {%- if s.id == station.id %}
+                selected="selected"
+              {% endif -%}
+            >{{ s.name }}
+            </option>
+          {% endfor %}
         </select>
         ?
       </div>
@@ -118,7 +121,7 @@
                 cur_perc=plot_data.current_avg_percentile,
                 period_start=plot_data.daily.index.min().year,
                 period_end=plot_data.daily.index.max().year,
-                station=station,
+                station=station.name,
                 hot_warm=plot_data.hot_warm
                 )
                 }}
@@ -130,7 +133,7 @@
                 _(
                 "%(station)s daily average temperature for the two weeks around "
                 "%(current_date)s",
-                station=station,
+                station=station.name,
                 current_date=plot_data.current_date
                 )
                 }}
@@ -178,13 +181,13 @@
               "We've compared every day this year at %(station)s to similar "
               "times of year in the past. Red days were %(hot_warm)s compared to records; "
               "blue days were cold.",
-              station=station,
+              station=station.name,
               hot_warm=plot_data.hot_warm
               )
               }}
             </p>
             <h5 class="text-center">
-              {{ _("%(station)s percentiles for %(year)s", station=station, year=plot_data.current_date.year) }}
+              {{ _("%(station)s percentiles for %(year)s", station=station.name, year=plot_data.current_date.year) }}
             </h5>
             <div id="calender_graph"></div>
           </div>
@@ -291,14 +294,14 @@
           button.innerHTML =
             '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
-          const request = `other-years/{{ station }}/${window.year}`;
+          const request = `other-years/{{ station.id }}/${window.year}`;
           let graph_data = await fetch(request).then((response) => {
             return response.json();
           });
 
           let h5 = document.createElement("h5");
           h5.className = "text-center mt-3";
-          h5.innerHTML = window.year;
+          h5.innerHTML = `{{ _("%(station)s percentiles for", station=station.name) }} ${window.year}`;
 
           let div = document.createElement("div");
           div.className = "mb-4";

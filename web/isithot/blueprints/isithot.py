@@ -1,5 +1,5 @@
 from datetime import date
-from datetime import timedelta
+from functools import lru_cache
 
 import pandas as pd
 from flask import abort
@@ -9,13 +9,11 @@ from flask import render_template
 from flask import request
 from flask import Response
 from flask import url_for
-from scipy import stats
+from pandas.core.api import DataFrame as DataFrame
 
 from web.dashboard.models import db
-from web.isithot.blueprints.plots import calendar_fig
-from web.isithot.blueprints.plots import distrib_fig
-from web.isithot.blueprints.plots import hist_fig
-from web.isithot.blueprints.plots import PlotData
+from web.isithot.blueprints.plots import ColumnMapping
+from web.isithot.blueprints.plots import DataProvider
 from web.isithot.cache import cache
 
 isithot = Blueprint(
@@ -23,6 +21,82 @@ isithot = Blueprint(
     import_name=__name__,
     url_prefix='/isithot',
 )
+
+
+class Lmss(DataProvider):
+    @lru_cache(maxsize=1)
+    def get_daily_data(self, d: date) -> DataFrame:
+        """Get the daily data for the LMSS from the database
+
+        :param d: the date for which to prepare data. This will usually be
+            today
+        """
+        daily_query = '''\
+            SELECT
+                date::TIMESTAMP,
+                temp_mean_mannheim,
+                EXTRACT(DOY FROM date) AS doy
+            FROM lmss_daily ORDER BY date
+        '''
+        return pd.read_sql(sql=daily_query, con=db.engine, index_col='date')
+
+    @cache.cached(timeout=300, key_prefix='current_data')
+    def get_current_data(self, d: date) -> DataFrame:
+        """Get today's data for the LMSS from the database
+
+        :param d: the date for which to prepare data. This will usually be
+            today
+        """
+        now_query = '''\
+            SELECT
+                date, temp_max, temp_min
+            FROM lmss_garden_raw
+            WHERE date > %(date)s
+            ORDER BY date
+        '''
+        return pd.read_sql(
+            sql=now_query,
+            con=db.engine,
+            index_col='date',
+            params={'date': d},
+        )
+
+
+class Rgs(DataProvider):  # pragma: no cover
+    def get_daily_data(self, d: date) -> DataFrame:
+        """Get the daily data for the RGS II from the database
+
+        :param d: the date for which to prepare data. This will usually be
+            today
+        """
+        daily_query = '''\
+            SELECT
+                date::TIMESTAMP,
+                temp_mean_mannheim,
+                EXTRACT(DOY FROM date) AS doy
+            FROM rgs_daily ORDER BY date
+        '''
+        return pd.read_sql(sql=daily_query, con=db.engine, index_col='date')
+
+    def get_current_data(self, d: date) -> DataFrame:
+        """Get today's data for the RGS II from the database
+
+        :param d: the date for which to prepare data. This will usually be
+            today
+        """
+        now_query = '''\
+            SELECT
+                date, temp_max, temp_min
+            FROM rgs_raw
+            WHERE date > %(date)s
+            ORDER BY date
+        '''
+        return pd.read_sql(
+            sql=now_query,
+            con=db.engine,
+            index_col='date',
+            params={'date': d},
+        )
 
 
 def get_locale() -> str | None:
@@ -39,197 +113,6 @@ def get_locale() -> str | None:
         return 'en'
 
 
-def _prepare_daily_and_calendar_data(
-        station: str,
-        d: date,
-        current_avg: float | None = None,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """
-    This get the daily data from the database and creates the calendar plot
-    data. This is separated from :func:`_prepare_data` so it can be used via
-    :func:`last_years_calendar`
-
-    :param station: The station to prepare the data for. It can currently only
-        be ``LMSS`` and ``RGS``
-    :param d: the date for which to prepare data. This will usually be today or
-        in this case the first day of the year to prepare the calendar data for
-    :param current_avg: This is used to add the current day which has no entry
-        in the daily data just yet. When working with previous years, this
-        should be left as ``None``
-    :returns: a tuple of :func:`pd.DataFrame`: ``(daily, calendar_data)``
-    """
-    if station == 'LMSS':
-        daily_query = '''\
-            SELECT
-                date::TIMESTAMP,
-                temp_mean_mannheim,
-                EXTRACT(DOY FROM date) AS doy
-            FROM lmss_daily ORDER BY date
-        '''
-    else:  # pragma: no cover
-        daily_query = '''\
-            SELECT
-                date::TIMESTAMP,
-                temp_mean_mannheim,
-                EXTRACT(DOY FROM date) AS doy
-            FROM rgs_daily ORDER BY date
-        '''
-
-    daily = pd.read_sql(sql=daily_query, con=db.engine, index_col='date')
-    _daily = daily.loc[daily.index.year < d.year].dropna()
-
-    def _calc_perc(x: pd.Series) -> pd.Series:
-        allowed_doy = pd.date_range(
-            start=x.name - timedelta(days=7),
-            end=x.name + timedelta(days=7),
-            periods=15,
-        ).day_of_year
-        perc, = stats.percentileofscore(
-            _daily[_daily['doy'].isin(allowed_doy)]['temp_mean_mannheim'],
-            x,
-        )
-        return perc
-
-    calendar_data: pd.DataFrame = daily.loc[
-        (daily.index.year >= d.year) & (daily.index.year < d.year + 1)
-    ]
-
-    if current_avg is not None:
-        # add the current day to the calendar plot
-        calendar_data.loc[pd.Timestamp(d)] = [
-            current_avg, d.timetuple().tm_yday,
-        ]
-
-    calendar_data.loc[:, 'perc'] = calendar_data[[
-        'temp_mean_mannheim',
-    ]].apply(_calc_perc, axis=1)
-    # fill the year, so the plot always shows the entire year
-    days = pd.date_range(
-        start=date(d.year, 1, 1),
-        end=date(d.year, 12, 31), freq='1D',
-        name='date',
-    )
-    calendar_data = calendar_data.reindex(days)
-
-    calendar_data.loc[:, 'day'] = calendar_data.index.day
-    calendar_data.loc[:, 'month'] = calendar_data.index.month
-    calendar_data.loc[:, 'month_name'] = calendar_data.index.strftime('%b')
-    calendar_data = calendar_data.pivot(
-        index=['month', 'month_name'],
-        columns='day',
-        values='perc',
-    ).droplevel('month')
-    return (daily, calendar_data)
-
-
-def _prepare_data(d: date, station: str) -> PlotData:
-    """
-    The purpose of this function is to compile a
-    :func:`web.isithot.blueprints.plots.PlotData()` object which is used for
-    the creation of all plots.
-
-    :param d: the date for which to prepare data. This will usually be today
-    :param station: The station to prepare the data for. It can currently only
-        be ``LMSS`` and ``RGS``
-
-    :returns: the data needed for creating the plots and texts all contained in
-        a :func:`web.isithot.blueprints.plots.PlotData()` object
-    """
-    if station == 'LMSS':
-        now_query = '''\
-            SELECT
-                date, temp_max, temp_min
-            FROM lmss_garden_raw
-            WHERE date > %(date)s
-            ORDER BY date
-        '''
-    else:  # pragma: no cover
-        now_query = '''\
-            SELECT
-                date, temp_max, temp_min
-            FROM rgs_raw
-            WHERE date > %(date)s
-            ORDER BY date
-        '''
-
-    now = pd.read_sql(
-        sql=now_query,
-        con=db.engine,
-        index_col='date',
-        params={'date': d},
-    )
-
-    # compile the current data
-    today_data = now.loc[now.index >= pd.Timestamp(d)].agg(
-        {'temp_min': 'min', 'temp_max': 'max'},
-    )
-
-    # TODO: what if it's the next day and no data is there (yet)
-    current_avg = (today_data.temp_max + today_data.temp_min) / 2
-
-    daily, calendar_data = _prepare_daily_and_calendar_data(
-        station=station,
-        d=d,
-        current_avg=current_avg,
-    )
-    # warming trend for current time span of the year
-    trend_overall_data = daily['temp_mean_mannheim'].resample(
-        '1Y',
-    ).mean().reset_index(drop='date').dropna()
-    trend_overall = stats.linregress(
-        x=trend_overall_data.index.values,
-        y=trend_overall_data.values,
-    )
-
-    # extract data for distribution plots
-    allowed_doy = pd.date_range(
-        start=d - timedelta(days=7),
-        end=(d + timedelta(days=7)),
-        periods=15,
-    ).day_of_year
-
-    data: pd.DataFrame = daily.loc[
-        (daily.index.year < d.year) & daily['doy'].isin(allowed_doy)
-    ]
-
-    # warming trend for current time span of the year
-    trend_month_data = data['temp_mean_mannheim'].resample(
-        '1Y',
-    ).mean().reset_index(drop='date').dropna()
-    trend_month = stats.linregress(
-        x=trend_month_data.index.values,
-        y=trend_month_data.values,
-    )
-
-    current_avg_perc = stats.percentileofscore(
-        a=data['temp_mean_mannheim'],
-        score=current_avg,
-    )
-
-    q5 = data['temp_mean_mannheim'].quantile(q=0.05)
-    q95 = data['temp_mean_mannheim'].quantile(q=0.95)
-    med = data['temp_mean_mannheim'].median()
-
-    return PlotData(
-        current_date=d,
-        daily=daily,
-        now=now,
-        toy_data=data,
-        trend_overall_data=trend_overall_data,
-        trend_month_data=trend_month_data,
-        calendar_data=calendar_data,
-        trend_overall_slope=trend_overall.slope,
-        trend_overall_intercept=trend_overall.intercept,
-        trend_month_slope=trend_month.slope,
-        trend_month_intercept=trend_month.intercept,
-        current_avg=current_avg,
-        current_avg_percentile=current_avg_perc,
-        q5=q5,
-        q95=q95,
-        median=med,
-    )
-
-
 @isithot.route('/')
 def index() -> Response:
     """
@@ -239,7 +122,27 @@ def index() -> Response:
 
 
 def _i18n_cache_key(**kwargs: str) -> str:
+    """Custom function for generating a cache-key based on strings passed as
+    keyword arguments
+
+    :param kwargs: any number of keyword arguments that are strings
+    """
     return f'{"".join(kwargs.values())}-{get_locale()}'
+
+
+COL_MAPPING = ColumnMapping(
+    datetime='date',
+    temp_mean='temp_mean_mannheim',
+    temp_max='temp_max',
+    temp_min='temp_min',
+    day_of_year='doy',
+)
+
+# TODO: this is i.e. a feature flag for the RGS
+DATA_PROVIDERS: dict[str, DataProvider] = {
+    'lmss': Lmss(col_mapping=COL_MAPPING, name='LMSS', id='lmss'),
+    # 'rgs': Rgs(col_mapping=COL_MAPPING, name='RGS II', id='rgs'),
+}
 
 
 @isithot.route('/<station>')
@@ -256,15 +159,15 @@ def plots(station: str) -> str:
     :param station: The station a plot is created for. Either ``lmss`` or
         ``rgs``
     """
-    station = station.upper()
-    # TODO: this is i.e. a feature flag for the RGS
-    if station not in ('LMSS',):
+    if station not in DATA_PROVIDERS.keys():
         abort(404)
 
-    data = _prepare_data(d=date.today(), station=station)
-    distrib_graph = distrib_fig(data)
-    hist_graph = hist_fig(data)
-    calender_graph = calendar_fig(data.calendar_data)
+    provider = DATA_PROVIDERS[station]
+
+    data = provider.prepare_data(d=date.today())
+    distrib_graph = provider.distrib_fig(data)
+    hist_graph = provider.hist_fig(data)
+    calender_graph = provider.calendar_fig(data.calendar_data)
     # because we have `orjson` installed, plotly tries to use this. But our
     # tests fail because it cannot serialize freezegun's FakeDateTime we need
     # to fallback to the builtin json module
@@ -274,8 +177,9 @@ def plots(station: str) -> str:
         distrib_graph=distrib_graph.to_json(engine='json'),
         hist_graph=hist_graph.to_json(engine='json'),
         calender_graph=calender_graph.to_json(engine='json'),
-        station=station,
+        station=provider,
         plot_data=data,
+        data_providers=DATA_PROVIDERS,
     )
 
 
@@ -294,16 +198,15 @@ def last_years_calendar(station: str, year: int) -> str:
     :param year: The year a plot is created for. Must be greater than 2010 and
         less than or equal to the current year
     """
-    station = station.upper()
-    # TODO: this is i.e. a feature flag for the RGS
-    if station not in ('LMSS',):
+    if station not in DATA_PROVIDERS.keys():
         abort(404)
     if not (2010 <= year <= date.today().year):
         abort(400)
 
-    _, calendar_data = _prepare_daily_and_calendar_data(
-        station=station,
+    provider = DATA_PROVIDERS[station]
+
+    _, calendar_data = provider.prepare_daily_and_calendar_data(
         d=date(year, 1, 1),
     )
-    fig = calendar_fig(calendar_data)
+    fig = provider.calendar_fig(calendar_data)
     return Response(fig.to_json(engine='json'), mimetype='application/json')

@@ -12,11 +12,17 @@ from PIL import ImageChops
 from plotly.graph_objects import Figure
 from sqlalchemy import text
 
-from web.isithot.blueprints.isithot import _prepare_data
-from web.isithot.blueprints.isithot import PlotData
-from web.isithot.blueprints.plots import calendar_fig
-from web.isithot.blueprints.plots import distrib_fig
-from web.isithot.blueprints.plots import hist_fig
+from web.isithot.blueprints.isithot import ColumnMapping
+from web.isithot.blueprints.isithot import Lmss
+from web.isithot.blueprints.plots import PlotData
+
+cm = ColumnMapping(
+    datetime='date',
+    temp_mean='temp_mean_mannheim',
+    temp_max='temp_max',
+    temp_min='temp_min',
+    day_of_year='doy',
+)
 
 
 @pytest.fixture
@@ -180,8 +186,9 @@ def test_data_lmss(engine):
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
 def test_distrib_plot_lmss(isithot_client):
     with isithot_client.application.app_context():
-        plot_data = _prepare_data(d=date(2021, 5, 14), station='LMSS')
-    fig = distrib_fig(plot_data)
+        provider = Lmss(cm, name='LMSS', id='lmss')
+        plot_data = provider.prepare_data(d=date(2021, 5, 14))
+    fig = provider.distrib_fig(plot_data)
     assert_plot_is_equal(
         fig, baseline='testing/plot_baseline/distrib_fig.jpeg',
     )
@@ -190,8 +197,9 @@ def test_distrib_plot_lmss(isithot_client):
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
 def test_hist_plot_lmss(isithot_client):
     with isithot_client.application.app_context():
-        plot_data = _prepare_data(d=date(2021, 5, 14), station='LMSS')
-    fig = hist_fig(plot_data)
+        provider = Lmss(cm, name='LMSS', id='lmss')
+        plot_data = provider.prepare_data(d=date(2021, 5, 14))
+    fig = provider.hist_fig(plot_data)
     assert_plot_is_equal(fig, baseline='testing/plot_baseline/hist_fig.jpeg')
 
 
@@ -205,8 +213,9 @@ def test_hist_plot_lmss_today_value_is_record(isithot_client, engine):
         con.execute(text(query))
 
     with isithot_client.application.app_context():
-        plot_data = _prepare_data(d=date(2021, 5, 14), station='LMSS')
-    fig = hist_fig(plot_data)
+        provider = Lmss(cm, name='LMSS', id='lmss')
+        plot_data = provider.prepare_data(d=date(2021, 5, 14))
+    fig = provider.hist_fig(plot_data)
     assert_plot_is_equal(
         fig,
         baseline='testing/plot_baseline/hist_fig_max_record.jpeg',
@@ -216,8 +225,9 @@ def test_hist_plot_lmss_today_value_is_record(isithot_client, engine):
 @pytest.mark.usefixtures('test_data_lmss')
 def test_hist_plot_lmss_no_current_data(isithot_client):
     with isithot_client.application.app_context():
-        plot_data = _prepare_data(d=date(2021, 5, 14), station='LMSS')
-    fig = hist_fig(plot_data)
+        provider = Lmss(cm, name='LMSS', id='lmss')
+        plot_data = provider.prepare_data(d=date(2021, 5, 14))
+    fig = provider.hist_fig(plot_data)
     assert_plot_is_equal(
         fig,
         baseline='testing/plot_baseline/hist_fig_no_current_data.jpeg',
@@ -227,8 +237,9 @@ def test_hist_plot_lmss_no_current_data(isithot_client):
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
 def test_calendar_plot_lmss(isithot_client):
     with isithot_client.application.app_context():
-        plot_data = _prepare_data(d=date(2021, 5, 14), station='LMSS')
-    fig = calendar_fig(plot_data.calendar_data)
+        provider = Lmss(cm, name='LMSS', id='lmss')
+        plot_data = provider.prepare_data(d=date(2021, 5, 14))
+    fig = provider.calendar_fig(plot_data.calendar_data)
     assert_plot_is_equal(
         fig, baseline='testing/plot_baseline/calendar_fig.jpeg',
     )
