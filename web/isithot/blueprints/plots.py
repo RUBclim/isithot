@@ -216,7 +216,7 @@ class DataProvider:
         )
         # warming trend for current time span of the year
         trend_overall_data = daily[self.col_mapping.temp_mean].resample(
-            '1Y',
+            '1YE',
         ).mean().reset_index(drop=self.col_mapping.datetime).dropna()
         trend_overall = stats.linregress(
             x=trend_overall_data.index.values,
@@ -236,7 +236,7 @@ class DataProvider:
 
         # warming trend for current time span of the year
         trend_month_data = data[self.col_mapping.temp_mean].resample(
-            '1Y',
+            '1YE',
         ).mean().reset_index(drop=self.col_mapping.datetime).dropna()
         trend_month = stats.linregress(
             x=trend_month_data.index.values,
