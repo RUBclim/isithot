@@ -214,10 +214,13 @@ class DataProvider:
             d=d,
             current_avg=current_avg,
         )
-        # warming trend for current time span of the year
-        trend_overall_data = daily[self.col_mapping.temp_mean].resample(
-            '1YE',
-        ).mean().reset_index(drop=self.col_mapping.datetime).dropna()
+        # warming trend for the entire time series
+        first_doy = pd.Timestamp(year=d.year, month=1, day=1)
+        trend_overall_data = daily[self.col_mapping.temp_mean].loc[
+            daily.index < first_doy
+        ].resample('1YE').mean().reset_index(
+            drop=self.col_mapping.datetime,
+        ).dropna()
         trend_overall = stats.linregress(
             x=trend_overall_data.index.values,
             y=trend_overall_data.values,
