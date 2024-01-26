@@ -184,6 +184,24 @@ def test_data_lmss(engine):
 
 
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
+def test_prepare_data_daily_value_is_nan(isithot_client, engine):
+    with engine.connect() as con:
+        con.execute(
+            text(
+                """\
+                INSERT INTO lmss_daily(date, temp_mean_mannheim)
+                 VALUES ('1975-05-13', NULL)
+                """,
+            ),
+        )
+    with isithot_client.application.app_context():
+        provider = Lmss(cm, name='LMSS', id='lmss')
+        plot_data = provider.prepare_data(d=date(2021, 5, 14))
+
+    assert plot_data.current_avg_percentile == 0
+
+
+@pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
 def test_distrib_plot_lmss(isithot_client):
     with isithot_client.application.app_context():
         provider = Lmss(cm, name='LMSS', id='lmss')

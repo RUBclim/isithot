@@ -214,6 +214,7 @@ class DataProvider:
             d=d,
             current_avg=current_avg,
         )
+        daily = daily.dropna()
         # warming trend for the entire time series
         first_doy = pd.Timestamp(year=d.year, month=1, day=1)
         trend_overall_data = daily[self.col_mapping.temp_mean].loc[
