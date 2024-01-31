@@ -1,5 +1,4 @@
 from datetime import date
-from functools import lru_cache
 
 import pandas as pd
 from flask import abort
@@ -24,7 +23,7 @@ isithot = Blueprint(
 
 
 class Lmss(DataProvider):
-    @lru_cache(maxsize=1)
+    @cache.cached(timeout=300, key_prefix='daily_data')
     def get_daily_data(self, d: date) -> DataFrame:
         """Get the daily data for the LMSS from the database
 
