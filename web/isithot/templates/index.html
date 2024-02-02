@@ -120,7 +120,7 @@
                 cur_avg=plot_data.current_avg,
                 cur_perc=plot_data.current_avg_percentile,
                 period_start=plot_data.daily.index.min().year,
-                period_end=plot_data.daily.index.max().year,
+                period_end=plot_data.daily.index.max().year - 1,
                 station=station.name,
                 hot_warm=plot_data.hot_warm
                 )

@@ -308,7 +308,7 @@ def test_isithot_lmss(isithot_client):
         'which is warmer than 0&#37; '
         'of daily average temperatures at LMSS'
     ) in data
-    assert 'over the period 1912 - 2021' in data
+    assert 'over the period 1912 - 2020' in data
 
 
 @freeze_time('2021-05-14 22:00')
@@ -333,7 +333,7 @@ def test_isithot_lmss_german_locale(isithot_client):
         'was wärmer als 0&#37; der täglichen mittleren Temperaturen an der '
         'LMSS'
     ) in data
-    assert 'und im Zeitraum von 1912 - 2021' in data
+    assert 'und im Zeitraum von 1912 - 2020' in data
 
 
 @freeze_time('2021-05-14 22:00')
