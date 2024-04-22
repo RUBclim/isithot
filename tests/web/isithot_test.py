@@ -4,12 +4,13 @@ from datetime import date
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 import plotly.io
 import pytest
 from freezegun import freeze_time
+from matplotlib.figure import Figure
 from PIL import Image
 from PIL import ImageChops
-from plotly.graph_objects import Figure
 from sqlalchemy import text
 
 from web.isithot.blueprints.isithot import ColumnMapping
@@ -126,19 +127,28 @@ def test_plot_data_hot_warm(current_avg, txt, plot_data):
 
 
 def assert_plot_is_equal(
-        fig: Figure,
+        fig: Figure | go.Figure,
         baseline: str,
         diff_th: float = 0.0,
 ) -> None:
     with io.BytesIO() as current_img_bytes:
-        # make the background white so we can actually see something!
-        fig.update_layout(
-            plot_bgcolor='rgba(255, 255, 255, 255)',
-            paper_bgcolor='rgba(255, 255, 255, 255)',
-            font_family='DejaVu Sans',
-        )
-        fig.write_image(file=current_img_bytes, format='jpeg', scale=1)
-
+        if isinstance(fig, go.Figure):
+            # make the background white so we can actually see something!
+            fig.update_layout(
+                plot_bgcolor='rgba(255, 255, 255, 255)',
+                paper_bgcolor='rgba(255, 255, 255, 255)',
+                font_family='DejaVu Sans',
+            )
+            fig.write_image(file=current_img_bytes, format='jpeg', scale=1)
+        elif isinstance(fig, Figure):
+            fig.savefig(
+                current_img_bytes,
+                format='jpeg',
+                bbox_inches='tight',
+                dpi=120,
+            )
+        else:
+            raise NotImplementedError(f'unknown figure class: {type(fig)}')
         with (
                 Image.open(baseline) as baseline_img,
                 Image.open(current_img_bytes) as current_img,
