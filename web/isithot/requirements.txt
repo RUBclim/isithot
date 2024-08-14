@@ -4,7 +4,7 @@
 #
 #    pip-compile --allow-unsafe --no-annotate requirements.in
 #
-babel==2.15.0
+babel==2.16.0
 blinker==1.8.2
 cachelib==0.9.0
 certifi==2024.7.4
@@ -14,7 +14,7 @@ flask-babel==4.0.0
 flask-caching==2.3.0
 flask-sqlalchemy==3.1.1
 greenlet==3.0.3
-gunicorn==22.0.0
+gunicorn==23.0.0
 itsdangerous==2.2.0
 jinja2==3.1.4
 markupsafe==2.1.5
@@ -24,8 +24,8 @@ plotly==5.23.0
 psycopg2-binary==2.9.9
 pytz==2024.1
 scipy==1.14.0
-sentry-sdk[flask,sqlalchemy]==2.12.0
-sqlalchemy==2.0.31
+sentry-sdk[flask,sqlalchemy]==2.13.0
+sqlalchemy==2.0.32
 tenacity==9.0.0
 typing-extensions==4.12.2
 urllib3==2.2.2
