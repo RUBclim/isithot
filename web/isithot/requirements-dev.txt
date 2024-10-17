@@ -5,4 +5,4 @@
 #    pip-compile --allow-unsafe --no-annotate requirements-dev.in
 #
 kaleido==0.2.1
-pillow==10.4.0
+pillow==11.0.0
