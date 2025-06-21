@@ -10,10 +10,10 @@ from flask import Response
 from flask import url_for
 from pandas.core.api import DataFrame as DataFrame
 
-from web.dashboard.models import db
-from web.isithot.blueprints.plots import ColumnMapping
-from web.isithot.blueprints.plots import DataProvider
-from web.isithot.cache import cache
+from dashboard.models import db
+from isithot.blueprints.plots import ColumnMapping
+from isithot.blueprints.plots import DataProvider
+from isithot.cache import cache
 
 isithot = Blueprint(
     name='isithot',

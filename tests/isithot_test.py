@@ -13,9 +13,9 @@ from PIL import Image
 from PIL import ImageChops
 from sqlalchemy import text
 
-from web.isithot.blueprints.isithot import ColumnMapping
-from web.isithot.blueprints.isithot import Lmss
-from web.isithot.blueprints.plots import PlotData
+from isithot.blueprints.isithot import ColumnMapping
+from isithot.blueprints.isithot import Lmss
+from isithot.blueprints.plots import PlotData
 
 cm = ColumnMapping(
     datetime='date',

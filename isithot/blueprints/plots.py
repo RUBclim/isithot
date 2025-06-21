@@ -185,14 +185,14 @@ class DataProvider:
     def prepare_data(self, d: date) -> PlotData:
         """
         The purpose of this function is to compile a
-        :func:`web.isithot.blueprints.plots.PlotData()` object which is used
+        :func:`isithot.blueprints.plots.PlotData()` object which is used
         for the creation of all plots.
 
         :param d: the date for which to prepare data. This will usually be
             today
 
         :returns: the data needed for creating the plots and texts all
-            contained in a :func:`web.isithot.blueprints.plots.PlotData()`
+            contained in a :func:`isithot.blueprints.plots.PlotData()`
             object
         """
         now = self.get_current_data(d)
