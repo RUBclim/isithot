@@ -57,11 +57,14 @@ class DataProvider:
         returned by :meth:`get_daily_data` or :meth:`get_current_data` to
         variables so they can be used later
 
-    :param station_name: the name of the station that is displayed on the
+    :param name: the name of the station that is displayed on the
         website
-    :param station_id: the ID of the station that is used for compiling links.
+    :param id: the ID of the station that is used for compiling links.
         If multiple DataProviders are used, each one must have a unique
         ``station_id``.
+    :param min_year: the minimum year for which data is available. This is
+        used to determine the first year for which a calendar plot is
+        created.
     """
 
     def __init__(
