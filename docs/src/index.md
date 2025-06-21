@@ -102,6 +102,40 @@ class TestProvider(DataProvider):
         ...
 ```
 
+### more complex data retrieval
+
+An example for a more complex example can be found in
+[`testing/example_app.py`](https://github.com/RUBclim/isithot/blob/main/testing/example_app.py)
+which uses database queries. All implementations need to consider performance since this
+is executed during handling of the http request.
+
+Another option for data retrieval is the server performing and API request e.g.
+
+```python
+    def get_current_data(self, d: date) -> DataFrame:
+        """
+        fetch the latest weather data from the DWD. ``self.id`` corresponds to the
+        station ID by DWD which is set during DataProvider creation.
+        """
+        ret = urllib.request.urlopen(
+            f'https://dwd.api.proxy.bund.dev/v30/stationOverviewExtended?stationIds={self.id}',
+            timeout=3,
+        )
+        data = current_app.json.loads(ret.read())
+        temp_min = data[self.id]['days'][0]['temperatureMin'] / 10
+        temp_max = data[self.id]['days'][0]['temperatureMax'] / 10
+        date = datetime.strptime(
+            data[self.id]['days'][0]['dayDate'], '%Y-%m-%d',
+        )
+        return pd.DataFrame(
+            {
+                self.col_mapping.temp_min: temp_min,
+                self.col_mapping.temp_max: temp_max,
+            },
+            index=pd.DatetimeIndex([date], name=self.col_mapping.datetime),
+        )
+```
+
 ## API-Documentation
 
 ### i18n
