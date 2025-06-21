@@ -5,7 +5,6 @@
 .pytest*
 .tox
 .vscode
-*.mo
 __pycache__
 archive
 backup*

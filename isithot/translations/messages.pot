@@ -1,150 +1,150 @@
 # Translations template for PROJECT.
-# Copyright (C) 2024 ORGANIZATION
+# Copyright (C) 2025 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-02-02 17:24+0100\n"
+"POT-Creation-Date: 2025-06-21 20:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.14.0\n"
+"Generated-By: Babel 2.17.0\n"
 
-#: isithot/blueprints/plots.py:298
+#: isithot/blueprints/plots.py:300
 msgid "Daily Average Temperature"
 msgstr ""
 
-#: isithot/blueprints/plots.py:311 isithot/blueprints/plots.py:537
+#: isithot/blueprints/plots.py:313 isithot/blueprints/plots.py:539
 msgid "Daily Average Temperature (°C)"
 msgstr ""
 
-#: isithot/blueprints/plots.py:332
+#: isithot/blueprints/plots.py:334
 #, python-format
 msgid "<b>5th percentile: %(q5).1f °C</b>"
 msgstr ""
 
-#: isithot/blueprints/plots.py:350
+#: isithot/blueprints/plots.py:352
 #, python-format
 msgid "<b>95th percentile: %(q95).1f °C</b>"
 msgstr ""
 
-#: isithot/blueprints/plots.py:373
+#: isithot/blueprints/plots.py:376
 #, python-format
 msgid "<b>Trend for this time of year: %(century_trend).1f K/century</b>"
 msgstr ""
 
-#: isithot/blueprints/plots.py:401
+#: isithot/blueprints/plots.py:404
 #, python-format
 msgid "<b>Overall Trend: %(century_trend).1f K/century</b>"
 msgstr ""
 
-#: isithot/blueprints/plots.py:425 isithot/blueprints/plots.py:593
+#: isithot/blueprints/plots.py:428 isithot/blueprints/plots.py:596
 #, python-format
 msgid "<b>Today: %(cur_avg).1f °C</b>"
 msgstr ""
 
-#: isithot/blueprints/plots.py:551
+#: isithot/blueprints/plots.py:553
 #, python-format
 msgid "<b> 95th percentile: %(q95).1f °C</b>"
 msgstr ""
 
-#: isithot/blueprints/plots.py:562
+#: isithot/blueprints/plots.py:564
 #, python-format
 msgid "<b> 5th percentile: %(q5).1f °C</b>"
 msgstr ""
 
-#: isithot/blueprints/plots.py:573
+#: isithot/blueprints/plots.py:576
 #, python-format
 msgid "<b> 50th percentile: %(med).1f °C</b>"
 msgstr ""
 
-#: isithot/blueprints/plots.py:707
+#: isithot/blueprints/plots.py:709
 msgid "Hell no!"
 msgstr ""
 
-#: isithot/blueprints/plots.py:709
+#: isithot/blueprints/plots.py:711
 msgid "No!"
 msgstr ""
 
-#: isithot/blueprints/plots.py:711
+#: isithot/blueprints/plots.py:713
 msgid "Nope"
 msgstr ""
 
-#: isithot/blueprints/plots.py:713
+#: isithot/blueprints/plots.py:715
 msgid "Not really"
 msgstr ""
 
-#: isithot/blueprints/plots.py:715
+#: isithot/blueprints/plots.py:717
 msgid "Yup"
 msgstr ""
 
-#: isithot/blueprints/plots.py:717
+#: isithot/blueprints/plots.py:719
 msgid "Yeah!"
 msgstr ""
 
-#: isithot/blueprints/plots.py:719
+#: isithot/blueprints/plots.py:721
 msgid "Hell yeah!"
 msgstr ""
 
-#: isithot/blueprints/plots.py:721
+#: isithot/blueprints/plots.py:723
 msgid "Bloody hell yes!"
 msgstr ""
 
-#: isithot/blueprints/plots.py:723
+#: isithot/blueprints/plots.py:725
 msgid "not sure, we have no data yet"
 msgstr ""
 
-#: isithot/blueprints/plots.py:729
+#: isithot/blueprints/plots.py:731
 msgid "Are you kidding?! It's bloody cold"
 msgstr ""
 
-#: isithot/blueprints/plots.py:731
+#: isithot/blueprints/plots.py:733
 msgid "It's actually really cold"
 msgstr ""
 
-#: isithot/blueprints/plots.py:733
+#: isithot/blueprints/plots.py:735
 msgid "It's actually kinda cool"
 msgstr ""
 
-#: isithot/blueprints/plots.py:735
+#: isithot/blueprints/plots.py:737
 msgid "It's about average"
 msgstr ""
 
-#: isithot/blueprints/plots.py:737
-msgid "It's warmer than average"
-msgstr ""
-
 #: isithot/blueprints/plots.py:739
-#, python-format
-msgid "It's quite %(hot_warm)s!"
+msgid "It's warmer than average"
 msgstr ""
 
 #: isithot/blueprints/plots.py:741
 #, python-format
-msgid "It's really %(hot_warm)s!"
+msgid "It's quite %(hot_warm)s!"
 msgstr ""
 
 #: isithot/blueprints/plots.py:743
 #, python-format
-msgid "It's bloody %(hot_warm)s!"
+msgid "It's really %(hot_warm)s!"
 msgstr ""
 
 #: isithot/blueprints/plots.py:745
+#, python-format
+msgid "It's bloody %(hot_warm)s!"
+msgstr ""
+
+#: isithot/blueprints/plots.py:747
 msgid "could be hotter, could be cooler"
 msgstr ""
 
-#: isithot/blueprints/plots.py:750
+#: isithot/blueprints/plots.py:752
 msgid "hot"
 msgstr ""
 
-#: isithot/blueprints/plots.py:752
+#: isithot/blueprints/plots.py:754
 msgid "warm"
 msgstr ""
 
@@ -160,7 +160,7 @@ msgstr ""
 
 #: isithot/templates/index.html:56
 #, python-format
-msgid "Is it %(hot_warm)s right now in Bochum at"
+msgid "Is it %(hot_warm)s right now at"
 msgstr ""
 
 #: isithot/templates/index.html:88
