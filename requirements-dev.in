@@ -1,2 +1,12 @@
+covdefaults
+coverage
+freezegun
+furo
 kaleido
+myst_parser
 Pillow
+pytest
+sphinx
+sphinx-copybutton
+sphinx-toolbox
+sphinx_autodoc_typehints

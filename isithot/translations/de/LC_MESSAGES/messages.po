@@ -18,174 +18,174 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.14.0\n"
 
-#: web/isithot/blueprints/plots.py:298
+#: isithot/blueprints/plots.py:298
 msgid "Daily Average Temperature"
 msgstr "Tagesmitteltemperatur"
 
-#: web/isithot/blueprints/plots.py:311 web/isithot/blueprints/plots.py:537
+#: isithot/blueprints/plots.py:311 isithot/blueprints/plots.py:537
 msgid "Daily Average Temperature (°C)"
 msgstr "Tagesmitteltemperatur (°C)"
 
-#: web/isithot/blueprints/plots.py:332
+#: isithot/blueprints/plots.py:332
 #, python-format
 msgid "<b>5th percentile: %(q5).1f °C</b>"
 msgstr "<b>5. Perzentil: %(q5).1f °C</b>"
 
-#: web/isithot/blueprints/plots.py:350
+#: isithot/blueprints/plots.py:350
 #, python-format
 msgid "<b>95th percentile: %(q95).1f °C</b>"
 msgstr "<b>95. Perzentil: %(q95).1f °C</b>"
 
-#: web/isithot/blueprints/plots.py:373
+#: isithot/blueprints/plots.py:373
 #, python-format
 msgid "<b>Trend for this time of year: %(century_trend).1f K/century</b>"
 msgstr "<b>Trend für diese Jahreszeit: %(century_trend).1f K/Jahrhundert</b>"
 
-#: web/isithot/blueprints/plots.py:401
+#: isithot/blueprints/plots.py:401
 #, python-format
 msgid "<b>Overall Trend: %(century_trend).1f K/century</b>"
 msgstr "<b>Ganzjähriger Trend: %(century_trend).1f K/Jahrhundert</b>"
 
-#: web/isithot/blueprints/plots.py:425 web/isithot/blueprints/plots.py:593
+#: isithot/blueprints/plots.py:425 isithot/blueprints/plots.py:593
 #, python-format
 msgid "<b>Today: %(cur_avg).1f °C</b>"
 msgstr "<b>Heute: %(cur_avg).1f °C</b>"
 
-#: web/isithot/blueprints/plots.py:551
+#: isithot/blueprints/plots.py:551
 #, python-format
 msgid "<b> 95th percentile: %(q95).1f °C</b>"
 msgstr "<b> 95. Perzentil: %(q95).1f °C</b>"
 
-#: web/isithot/blueprints/plots.py:562
+#: isithot/blueprints/plots.py:562
 #, python-format
 msgid "<b> 5th percentile: %(q5).1f °C</b>"
 msgstr "<b> 5. Perzentil: %(q5).1f °C</b>"
 
-#: web/isithot/blueprints/plots.py:573
+#: isithot/blueprints/plots.py:573
 #, python-format
 msgid "<b> 50th percentile: %(med).1f °C</b>"
 msgstr "<b> 50. Perzentil: %(med).1f °C</b>"
 
-#: web/isithot/blueprints/plots.py:707
+#: isithot/blueprints/plots.py:707
 msgid "Hell no!"
 msgstr "Auf gar keinen Fall!"
 
-#: web/isithot/blueprints/plots.py:709
+#: isithot/blueprints/plots.py:709
 msgid "No!"
 msgstr "Nein!"
 
-#: web/isithot/blueprints/plots.py:711
+#: isithot/blueprints/plots.py:711
 msgid "Nope"
 msgstr "Ne"
 
-#: web/isithot/blueprints/plots.py:713
+#: isithot/blueprints/plots.py:713
 msgid "Not really"
 msgstr "Nicht wirklich"
 
-#: web/isithot/blueprints/plots.py:715
+#: isithot/blueprints/plots.py:715
 msgid "Yup"
 msgstr "Jo"
 
-#: web/isithot/blueprints/plots.py:717
+#: isithot/blueprints/plots.py:717
 msgid "Yeah!"
 msgstr "Ja!"
 
-#: web/isithot/blueprints/plots.py:719
+#: isithot/blueprints/plots.py:719
 msgid "Hell yeah!"
 msgstr "auf jeden Fall!"
 
-#: web/isithot/blueprints/plots.py:721
+#: isithot/blueprints/plots.py:721
 msgid "Bloody hell yes!"
 msgstr "Ohne jeden Zweifel"
 
-#: web/isithot/blueprints/plots.py:723
+#: isithot/blueprints/plots.py:723
 msgid "not sure, we have no data yet"
 msgstr "nicht sicher, wir haben noch keine Daten"
 
-#: web/isithot/blueprints/plots.py:729
+#: isithot/blueprints/plots.py:729
 msgid "Are you kidding?! It's bloody cold"
 msgstr "Machst du Witze?! Es ist verdammt kalt"
 
-#: web/isithot/blueprints/plots.py:731
+#: isithot/blueprints/plots.py:731
 msgid "It's actually really cold"
 msgstr "Es ist tatsächlich ziemlich kalt"
 
-#: web/isithot/blueprints/plots.py:733
+#: isithot/blueprints/plots.py:733
 msgid "It's actually kinda cool"
 msgstr "Es ist tatsächlich recht kühl"
 
-#: web/isithot/blueprints/plots.py:735
+#: isithot/blueprints/plots.py:735
 msgid "It's about average"
 msgstr "Es liegt mehr oder weniger im Durchschnitt"
 
-#: web/isithot/blueprints/plots.py:737
+#: isithot/blueprints/plots.py:737
 msgid "It's warmer than average"
 msgstr "Es ist wärmer als normal"
 
-#: web/isithot/blueprints/plots.py:739
+#: isithot/blueprints/plots.py:739
 #, python-format
 msgid "It's quite %(hot_warm)s!"
 msgstr "es ist ziemlich %(hot_warm)s!"
 
-#: web/isithot/blueprints/plots.py:741
+#: isithot/blueprints/plots.py:741
 #, python-format
 msgid "It's really %(hot_warm)s!"
 msgstr "es ist recht %(hot_warm)s!"
 
-#: web/isithot/blueprints/plots.py:743
+#: isithot/blueprints/plots.py:743
 #, python-format
 msgid "It's bloody %(hot_warm)s!"
 msgstr "es ist verdammt %(hot_warm)s!"
 
-#: web/isithot/blueprints/plots.py:745
+#: isithot/blueprints/plots.py:745
 #, fuzzy
 msgid "could be hotter, could be cooler"
 msgstr "es könnte wärmer aber auch kälter sein"
 
-#: web/isithot/blueprints/plots.py:750
+#: isithot/blueprints/plots.py:750
 msgid "hot"
 msgstr "heiß"
 
-#: web/isithot/blueprints/plots.py:752
+#: isithot/blueprints/plots.py:752
 msgid "warm"
 msgstr "warm"
 
-#: web/isithot/templates/index.html:6
+#: isithot/templates/index.html:6
 #, python-format
 msgid "Is it %(hot_warm)s in Bochum?"
 msgstr "Ist es %(hot_warm)s in Bochum?"
 
-#: web/isithot/templates/index.html:51
+#: isithot/templates/index.html:51
 #, python-format
 msgid "Is it %(hot_warm)s?"
 msgstr "Ist es %(hot_warm)s?"
 
-#: web/isithot/templates/index.html:56
+#: isithot/templates/index.html:56
 #, python-format
 msgid "Is it %(hot_warm)s right now in Bochum at"
 msgstr "Ist es gerade %(hot_warm)s in Bochum an der"
 
-#: web/isithot/templates/index.html:88
+#: isithot/templates/index.html:88
 msgid "Dig deeper"
 msgstr "Mehr Details"
 
-#: web/isithot/templates/index.html:91
+#: isithot/templates/index.html:91
 msgid "This Idea originally comes from Sydney. Please have a look at"
 msgstr "Die Idee stammt ursprünglich aus Sydney. Bitte betrachten Sie"
 
-#: web/isithot/templates/index.html:93
+#: isithot/templates/index.html:93
 msgid "built by"
 msgstr "entwickelt von"
 
-#: web/isithot/templates/index.html:97
+#: isithot/templates/index.html:97
 msgid ", and"
 msgstr ", und"
 
-#: web/isithot/templates/index.html:106
+#: isithot/templates/index.html:106
 msgid "Here's how today compares..."
 msgstr "Der heutige Tag im Vergleich..."
 
-#: web/isithot/templates/index.html:110
+#: isithot/templates/index.html:110
 #, python-format
 msgid ""
 "Today's maximum temperature so far is %(today_max)s °C, and the minimum "
@@ -203,7 +203,7 @@ msgstr ""
 "kalten Tage (die jeweiligen oberen und unteren 5&#37;) liegen außerhalb "
 "der gestrichelten Linien."
 
-#: web/isithot/templates/index.html:133
+#: isithot/templates/index.html:133
 #, python-format
 msgid ""
 "%(station)s daily average temperature for the two weeks around "
@@ -212,7 +212,7 @@ msgstr ""
 "%(station)s mittlere tägliche Temperatur für zwei Wochen um den "
 "%(current_date)s"
 
-#: web/isithot/templates/index.html:147
+#: isithot/templates/index.html:147
 msgid ""
 "This is the distribution of temperatures typical for this time of year, "
 "which we've defined as a seven day window either side of today. Just like"
@@ -225,18 +225,18 @@ msgstr ""
 "vorkommenden Temperaturen und niedrige Werte bei selten vorkommenden "
 "Temperaturen."
 
-#: web/isithot/templates/index.html:158
+#: isithot/templates/index.html:158
 #, python-format
 msgid ""
 "Distribution of daily average temperature for this time of year since "
 "%(year)s"
 msgstr "Verteilung der Tagesmitteltemperatur für diese Jahreszeit seit %(year)s"
 
-#: web/isithot/templates/index.html:177
+#: isithot/templates/index.html:177
 msgid "...and the rest of the year"
 msgstr "...und der Rest des Jahres"
 
-#: web/isithot/templates/index.html:180
+#: isithot/templates/index.html:180
 #, python-format
 msgid ""
 "We've compared every day this year at %(station)s to similar times of "
@@ -247,20 +247,20 @@ msgstr ""
 "Zeiträumen in den vergangenen Jahren verglichen. Rot markierte Tage waren"
 " im Vergleich %(hot_warm)ser, blaue Tage kälter."
 
-#: web/isithot/templates/index.html:190
+#: isithot/templates/index.html:190
 #, python-format
 msgid "%(station)s percentiles for %(year)s"
 msgstr "%(station)s Perzentile für %(year)s"
 
-#: web/isithot/templates/index.html:201
+#: isithot/templates/index.html:201
 msgid "What about the last years?"
 msgstr "Was ist mit den letzten Jahren?"
 
-#: web/isithot/templates/index.html:210
+#: isithot/templates/index.html:210
 msgid "show previous year"
 msgstr "zeige Vorjahr"
 
-#: web/isithot/templates/index.html:304
+#: isithot/templates/index.html:304
 #, python-format
 msgid "%(station)s percentiles for"
 msgstr "%(station)s Perzentile für"

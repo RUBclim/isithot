@@ -8,6 +8,12 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 
 def create_app(config: object) -> Flask:
+    """create and configure the isithot Flask application.
+
+    :param config: Configuration object to use for the Flask app.
+
+    :return: Configured Flask application instance.
+    """
     sentry_sdk.init(
         dsn=os.environ.get('MONITOR_SENTRY_DSN'),
         integrations=[FlaskIntegration(), SqlalchemyIntegration()],
@@ -21,12 +27,6 @@ def create_app(config: object) -> Flask:
 
     from isithot.cache import cache
     cache.init_app(app)
-
-    from dashboard.models import db
-    db.init_app(app)
-    with app.app_context():
-        # TODO: maybe a race condition within in the db with the dashboard
-        db.create_all()
 
     from isithot.blueprints.isithot import isithot
     from isithot.blueprints.isithot import get_locale

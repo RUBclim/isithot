@@ -1,0 +1,25 @@
+services:
+  db:
+    container_name: stations-postgres-db
+    image: timescale/timescaledb-ha:pg16
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/home/postgres/pgdata/data
+      - ./testing/db_setup.sql:/docker-entrypoint-initdb.d/setup.sql:ro
+    environment:
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: dev
+      # we need to set this, so ordering is case insensitive
+      POSTGRES_INITDB_ARGS: "--locale=en_US.utf8"
+      TIMESCALEDB_TELEMETRY: "off"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --dbname=dev --username=dbuser || exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  pgdata:

@@ -8,14 +8,13 @@ import plotly.graph_objects as go
 import plotly.io
 import pytest
 from freezegun import freeze_time
-from matplotlib.figure import Figure
 from PIL import Image
 from PIL import ImageChops
 from sqlalchemy import text
 
-from isithot.blueprints.isithot import ColumnMapping
-from isithot.blueprints.isithot import Lmss
+from isithot import ColumnMapping
 from isithot.blueprints.plots import PlotData
+from testing.example_app import Lmss
 
 cm = ColumnMapping(
     datetime='date',
@@ -127,28 +126,18 @@ def test_plot_data_hot_warm(current_avg, txt, plot_data):
 
 
 def assert_plot_is_equal(
-        fig: Figure | go.Figure,
+        fig: go.Figure,
         baseline: str,
         diff_th: float = 0.0,
 ) -> None:
     with io.BytesIO() as current_img_bytes:
-        if isinstance(fig, go.Figure):
-            # make the background white so we can actually see something!
-            fig.update_layout(
-                plot_bgcolor='rgba(255, 255, 255, 255)',
-                paper_bgcolor='rgba(255, 255, 255, 255)',
-                font_family='DejaVu Sans',
-            )
-            fig.write_image(file=current_img_bytes, format='jpeg', scale=1)
-        elif isinstance(fig, Figure):
-            fig.savefig(
-                current_img_bytes,
-                format='jpeg',
-                bbox_inches='tight',
-                dpi=120,
-            )
-        else:
-            raise NotImplementedError(f'unknown figure class: {type(fig)}')
+        # make the background white so we can actually see something!
+        fig.update_layout(
+            plot_bgcolor='rgba(255, 255, 255, 255)',
+            paper_bgcolor='rgba(255, 255, 255, 255)',
+            font_family='DejaVu Sans',
+        )
+        fig.write_image(file=current_img_bytes, format='jpeg', scale=1)
         with (
                 Image.open(baseline) as baseline_img,
                 Image.open(current_img_bytes) as current_img,
@@ -205,7 +194,7 @@ def test_prepare_data_daily_value_is_nan(isithot_client, engine):
             ),
         )
     with isithot_client.application.app_context():
-        provider = Lmss(cm, name='LMSS', id='lmss')
+        provider = Lmss(cm, name='LMSS', id='lmss', min_year=2010)
         plot_data = provider.prepare_data(d=date(2021, 5, 14))
 
     assert plot_data.current_avg_percentile == 0
@@ -214,7 +203,7 @@ def test_prepare_data_daily_value_is_nan(isithot_client, engine):
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
 def test_distrib_plot_lmss(isithot_client):
     with isithot_client.application.app_context():
-        provider = Lmss(cm, name='LMSS', id='lmss')
+        provider = Lmss(cm, name='LMSS', id='lmss', min_year=2010)
         plot_data = provider.prepare_data(d=date(2021, 5, 14))
     fig = provider.distrib_fig(plot_data)
     assert_plot_is_equal(
@@ -225,7 +214,7 @@ def test_distrib_plot_lmss(isithot_client):
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
 def test_hist_plot_lmss(isithot_client):
     with isithot_client.application.app_context():
-        provider = Lmss(cm, name='LMSS', id='lmss')
+        provider = Lmss(cm, name='LMSS', id='lmss', min_year=2010)
         plot_data = provider.prepare_data(d=date(2021, 5, 14))
     fig = provider.hist_fig(plot_data)
     assert_plot_is_equal(fig, baseline='testing/plot_baseline/hist_fig.jpeg')
@@ -241,7 +230,7 @@ def test_hist_plot_lmss_today_value_is_record(isithot_client, engine):
         con.execute(text(query))
 
     with isithot_client.application.app_context():
-        provider = Lmss(cm, name='LMSS', id='lmss')
+        provider = Lmss(cm, name='LMSS', id='lmss', min_year=2010)
         plot_data = provider.prepare_data(d=date(2021, 5, 14))
     fig = provider.hist_fig(plot_data)
     assert_plot_is_equal(
@@ -253,7 +242,7 @@ def test_hist_plot_lmss_today_value_is_record(isithot_client, engine):
 @pytest.mark.usefixtures('test_data_lmss')
 def test_hist_plot_lmss_no_current_data(isithot_client):
     with isithot_client.application.app_context():
-        provider = Lmss(cm, name='LMSS', id='lmss')
+        provider = Lmss(cm, name='LMSS', id='lmss', min_year=2010)
         plot_data = provider.prepare_data(d=date(2021, 5, 14))
     fig = provider.hist_fig(plot_data)
     assert_plot_is_equal(
@@ -265,7 +254,7 @@ def test_hist_plot_lmss_no_current_data(isithot_client):
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
 def test_calendar_plot_lmss(isithot_client):
     with isithot_client.application.app_context():
-        provider = Lmss(cm, name='LMSS', id='lmss')
+        provider = Lmss(cm, name='LMSS', id='lmss', min_year=2010)
         plot_data = provider.prepare_data(d=date(2021, 5, 14))
     fig = provider.calendar_fig(plot_data.calendar_data)
     assert_plot_is_equal(
@@ -275,20 +264,20 @@ def test_calendar_plot_lmss(isithot_client):
 
 @pytest.mark.usefixtures('test_data_lmss')
 def test_root_redirects_to_lmss(isithot_client):
-    rv = isithot_client.get('/isithot', follow_redirects=True)
-    assert rv.request.path == '/isithot/lmss'
+    rv = isithot_client.get('/', follow_redirects=True)
+    assert rv.request.path == '/lmss'
     assert rv.status_code == 200
 
 
 @pytest.mark.parametrize('station', ('unknown-station', 'rgs', 'RGS'))
 def test_isithot_station_not_found(isithot_client, station):
-    rv = isithot_client.get(f'/isithot/{station}', follow_redirects=True)
+    rv = isithot_client.get(f'/{station}', follow_redirects=True)
     assert rv.status_code == 404
 
 
 @pytest.mark.usefixtures('test_data_lmss')
 def test_isithot_no_current_data_plots_are_omitted(isithot_client):
-    rv = isithot_client.get('/isithot/lmss', follow_redirects=True)
+    rv = isithot_client.get('/lmss', follow_redirects=True)
     assert rv.status_code == 200
     data = rv.data.decode()
     # check that text is correct
@@ -302,7 +291,7 @@ def test_isithot_no_current_data_plots_are_omitted(isithot_client):
 @freeze_time('2021-05-14 22:00')
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
 def test_isithot_lmss(isithot_client):
-    rv = isithot_client.get('/isithot/lmss', follow_redirects=True)
+    rv = isithot_client.get('/lmss', follow_redirects=True)
     assert rv.status_code == 200
     data = rv.data.decode()
     # check that the page contents are correct
@@ -325,7 +314,7 @@ def test_isithot_lmss(isithot_client):
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
 def test_isithot_lmss_german_locale(isithot_client):
     rv = isithot_client.get(
-        '/isithot/lmss',
+        '/lmss',
         headers={'Accept-Language': 'de-DE,en-US;q=0.7,en;q=0.3'},
     )
     assert rv.status_code == 200
@@ -351,7 +340,7 @@ def test_isithot_lmss_german_locale(isithot_client):
 def test_isithot_lmss_locale_is_not_cached(isithot_client):
     # german request
     rv = isithot_client.get(
-        '/isithot/lmss',
+        '/lmss',
         headers={'Accept-Language': 'de-DE,en-US;q=0.7,en;q=0.3'},
     )
     assert rv.status_code == 200
@@ -360,7 +349,7 @@ def test_isithot_lmss_locale_is_not_cached(isithot_client):
 
     # english request (must not be cached! since locale is different)
     rv = isithot_client.get(
-        '/isithot/lmss',
+        '/lmss',
         headers={'Accept-Language': 'en-US,en-US;q=0.7,en;q=0.3'},
     )
     assert rv.status_code == 200
@@ -370,21 +359,21 @@ def test_isithot_lmss_locale_is_not_cached(isithot_client):
 
 @pytest.mark.parametrize('station', ('unknown-station', 'rgs', 'RGS'))
 def test_other_years_station_not_found(isithot_client, station):
-    rv = isithot_client.get(f'/isithot/other-years/{station}/2021')
+    rv = isithot_client.get(f'/other-years/{station}/2021')
     assert rv.status_code == 404
 
 
 @freeze_time('2021-05-14 22:00')
 @pytest.mark.parametrize('year', (2009, 2022))
 def test_other_years_invalid_year(isithot_client, year):
-    rv = isithot_client.get(f'/isithot/other-years/lmss/{year}')
+    rv = isithot_client.get(f'/other-years/lmss/{year}')
     assert rv.status_code == 400
 
 
 @freeze_time('2024-01-01 18:19')
 @pytest.mark.usefixtures('test_data_lmss', 'raw_table_data')
 def test_other_years(isithot_client):
-    rv = isithot_client.get('/isithot/other-years/lmss/2021')
+    rv = isithot_client.get('/other-years/lmss/2021')
     assert rv.status_code == 200
     fig = plotly.io.from_json(rv.data.decode())
     assert_plot_is_equal(

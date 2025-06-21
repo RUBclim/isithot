@@ -1,0 +1,106 @@
+[build-system]
+requires = ["setuptools>=61.2", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "isithot"
+dynamic = ["version", "dependencies", "optional-dependencies"]
+requires-python = ">=3.13"
+authors = [{ name = "Jonas Kittner", email = "jonas.kittner@rub.de" }]
+maintainers = [{ name = "Jonas Kittner", email = "jonas.kittner@rub.de" }]
+description = "A python package to setup a web app showing if it is hot in your area."
+readme = "README.md"
+license-files = ["licenses/*"]
+
+[project.urls]
+Homepage = "https://scp.geographie.rub.de/isithot/"
+Documentation = "https://rubclim.github.io/isithot/"
+Repository = "https://github.com/RUBclim/isithot"
+
+[tool.setuptools_scm]
+
+[tool.setuptools]
+packages = ["isithot"]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+optional-dependencies = { dev = { file = ["requirements-dev.txt"] } }
+
+[tool.coverage.report]
+fail_under = 100
+exclude_also = [
+    # needed because of: https://github.com/nedbat/coveragepy/issues/1563
+    "raise NotImplementedError",
+    "case _:\\n\\s*raise NotImplementedError",
+]
+
+[tool.coverage.run]
+parallel = true
+plugins = ["covdefaults"]
+omit = ["isithot/config.py"]
+
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+show_error_codes = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["testing.*"]
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+
+[tool.tox]
+runner = "uv-venv-runner"
+env_list = ["py313", "pre-commit", "mypy"]
+
+[tool.tox.env_run_base]
+deps = [
+    "-rrequirements-dev.txt",
+    "-rrequirements.txt",
+]
+commands = [
+    ["pybabel", "compile", "-d", "isithot/translations" ],
+    ["coverage", "erase"],
+    ["coverage", "run", "-m", "pytest", { replace = "posargs", default = [], extend = true }],
+    ["coverage", "combine"],
+    ["coverage", "report"],
+]
+
+[tool.tox.env.pre-commit]
+skip_install = true
+deps = [
+    "-rrequirements-dev.txt",
+    "-rrequirements.txt",
+    "pre-commit",
+]
+commands = [["pre-commit", "run", "--all-files", "--show-diff-on-failure"]]
+
+[tool.tox.env.mypy]
+deps = [
+    "-rrequirements-dev.txt",
+    "-rrequirements.txt",
+    "mypy",
+]
+commands = [
+    ["mypy", "isithot", "--ignore-missing-imports"],
+    ["mypy", "tests", "--ignore-missing-imports"],
+]
+
+[tool.tox.env.docs]
+deps = [
+    "-rrequirements-dev.txt",
+    "-rrequirements.txt",
+]
+commands = [
+    ["sphinx-build", "-b", "html", "docs/src", "docs/_build/html"],
+]

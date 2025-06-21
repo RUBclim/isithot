@@ -62,7 +62,7 @@
           {% for s in data_providers.values() %}
             <option
               class="h1"
-              value="/isithot/{{ s.id }}"
+              value="{{ url_for('isithot.plots', station=s.id) }}"
               {%- if s.id == station.id %}
                 selected="selected"
               {% endif -%}

@@ -10,8 +10,7 @@ RUN : \
 
 WORKDIR /usr/src/app
 
-COPY ./web/requirements.txt web-requirements.txt
-COPY ./web/isithot/requirements.txt isithot-requirements.txt
+COPY ./requirements.txt requirements.txt
 
 ENV \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -19,9 +18,8 @@ ENV \
     UV_NO_CACHE=1
 
 RUN pip install wheel uv
-RUN uv pip install --system -r isithot-requirements.txt -r web-requirements.txt
+RUN uv pip install --system -r requirements.txt
 
-COPY web web
-COPY database database
+COPY . .
 
-RUN pybabel compile -d web/isithot/translations
+RUN pybabel compile -d isithot/translations

@@ -1,9 +1,7 @@
-from database.config import DatabaseConfig
+from isithot import DataProvider
 
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = DatabaseConfig.from_env().pg_db_URI
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_HTTPONLY = True
@@ -12,3 +10,4 @@ class Config:
     REMEMBER_COOKIE_HTTPONLY = True
     CACHE_TYPE = 'SimpleCache'
     CACHE_DEFAULT_TIMEOUT = 300
+    DATA_PROVIDER: DataProvider

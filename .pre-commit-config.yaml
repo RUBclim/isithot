@@ -1,0 +1,72 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
+    -   id: check-docstring-first
+    -   id: check-json
+    -   id: check-yaml
+    -   id: name-tests-test
+    -   id: debug-statements
+    -   id: check-added-large-files
+    -   id: requirements-txt-fixer
+        files: (requirements|constraints).*\.in$
+    -   id: double-quote-string-fixer
+    -   id: check-merge-conflict
+-   repo: https://github.com/pycqa/flake8
+    rev: 7.3.0
+    hooks:
+    -   id: flake8
+        additional_dependencies:
+            -   flake8-typing-imports==1.16.0
+            -   flake8-comprehensions==3.16.0
+            -   flake8-noqa==1.4.0
+            -   flake8-timeout==0.3.0
+            -   flake8-ban-utcnow==0.2.0
+        args: ["--min-python-version=3.12"]
+-   repo: https://github.com/jkittner/sri-checker
+    rev: 0.1.1
+    hooks:
+    -   id: sri-checker
+-   repo: https://github.com/hhatto/autopep8
+    rev: v2.3.2
+    hooks:
+    -   id: autopep8
+-   repo: https://github.com/jkittner/double-indent
+    rev: 0.1.5
+    hooks:
+    -    id: double-indent
+-   repo: https://github.com/asottile/reorder_python_imports
+    rev: v3.15.0
+    hooks:
+    -   id: reorder-python-imports
+        args: [--py313-plus]
+-   repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.2.0
+    hooks:
+    -   id: add-trailing-comma
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v3.20.0
+    hooks:
+    -   id: pyupgrade
+        args: [--py313-plus]
+-   repo: https://github.com/pre-commit/mirrors-prettier
+    rev: 'v4.0.0-alpha.8'
+    hooks:
+    -   id: prettier
+        args: [--prose-wrap, always, --print-width=88]
+        types_or: [markdown, javascript]
+-   repo: https://github.com/rtts/djhtml
+    rev: '3.0.8'
+    hooks:
+      - id: djhtml
+      - id: djcss
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.16.1
+    hooks:
+    -   id: mypy
+        additional_dependencies: [
+            'types-freezegun',
+            'sqlalchemy[mypy] > 2.0.0',
+        ]

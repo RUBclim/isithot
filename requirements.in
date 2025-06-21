@@ -3,6 +3,7 @@ flask-caching
 flask-sqlalchemy
 flask_babel
 gunicorn
+pandas
 plotly
 psycopg2-binary
 scipy

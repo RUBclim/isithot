@@ -69,10 +69,12 @@ class DataProvider:
             col_mapping: ColumnMapping,
             name: str,
             id: str,
+            min_year: int,
     ) -> None:
         self.col_mapping = col_mapping
         self.name = name
         self.id = quote(id)
+        self.min_year = min_year
 
     def get_daily_data(self, d: date) -> pd.DataFrame:
         """This needs to be implemented and most likely be a database query or
